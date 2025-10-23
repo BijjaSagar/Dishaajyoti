@@ -1,0 +1,11 @@
+{
+    "name": "DishaAjyoti",
+    "short_name": "DishaAjyoti",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0066CC",
+    "theme_color": "#0066CC",
+    "description": "Career & Life Guidance",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false
+}
