@@ -76,6 +76,29 @@ app.*.map.json
 # Coverage
 coverage/
 
+# Android Keystore and Signing
+**/android/key.properties
+**/android/*.jks
+**/android/*.keystore
+**/android/upload-keystore.jks
+**/android/app/upload-keystore.jks
+
+# iOS Code Signing
+**/ios/Runner.xcworkspace/xcuserdata/
+**/ios/Runner.xcodeproj/xcuserdata/
+**/ios/Runner.xcodeproj/project.xcworkspace/xcuserdata/
+**/ios/*.mobileprovision
+**/ios/*.p12
+**/ios/*.cer
+**/ios/exportOptions.plist
+
+# Sensitive Configuration Files
+**/google-services.json
+**/GoogleService-Info.plist
+**/.env
+**/.env.local
+**/.env.production
+
 # Exceptions to above rules.
 !**/ios/**/default.mode1v3
 !**/ios/**/default.mode2v3

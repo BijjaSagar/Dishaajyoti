@@ -45,5 +45,62 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	
+	<!-- App Transport Security Settings -->
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+	</dict>
+	
+	<!-- Camera Permission (for future features like document scanning) -->
+	<key>NSCameraUsageDescription</key>
+	<string>DishaAjyoti needs access to your camera to scan documents for palmistry analysis.</string>
+	
+	<!-- Photo Library Permission (for profile pictures and document uploads) -->
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>DishaAjyoti needs access to your photo library to upload images for analysis.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>DishaAjyoti needs permission to save reports and images to your photo library.</string>
+	
+	<!-- Location Permission (for birth place selection) -->
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>DishaAjyoti needs your location to help you select your birth place accurately.</string>
+	
+	<!-- Notifications Permission -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	
+	<!-- Face ID / Touch ID Permission (for biometric authentication) -->
+	<key>NSFaceIDUsageDescription</key>
+	<string>DishaAjyoti uses Face ID to securely authenticate and protect your personal information.</string>
+	
+	<!-- Prevent Screenshots on Sensitive Screens -->
+	<key>UIApplicationExitsOnSuspend</key>
+	<false/>
+	
+	<!-- App Capabilities -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
+	
+	<!-- Bundle Display Name -->
+	<key>CFBundleDisplayName</key>
+	<string>DishaAjyoti</string>
+	
+	<!-- Bundle Identifier -->
+	<key>CFBundleIdentifier</key>
+	<string>com.dishaajyoti.app</string>
+	
+	<!-- Minimum iOS Version -->
+	<key>MinimumOSVersion</key>
+	<string>12.0</string>
+	
+	<!-- Status Bar Style -->
+	<key>UIStatusBarStyle</key>
+	<string>UIStatusBarStyleLightContent</string>
+	<key>UIViewControllerBasedStatusBarAppearance</key>
+	<false/>
 </dict>
 </plist>

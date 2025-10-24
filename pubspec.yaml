@@ -28,28 +28,86 @@ dependencies:
   # Local Storage
   shared_preferences: ^2.2.2
   
+  # Payment Gateway
+  razorpay_flutter: ^1.3.7
+  
+  # PDF Viewer
+  syncfusion_flutter_pdfviewer: ^28.1.33
+  
+  # File Picker and Path Provider
+  path_provider: ^2.1.5
+  permission_handler: ^11.3.1
+  
   # Localization
   flutter_localizations:
     sdk: flutter
   intl: ^0.20.2
+  
+  # Security
+  crypto: ^3.0.3
+  
+  # Firebase Cloud Messaging
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.5
+  
+  # Local Database
+  sqflite: ^2.3.0
+  
+  # PDF Generation
+  pdf: ^3.10.7
+  printing: ^5.11.1
+  
+  # HTTP for API calls
+  http: ^1.1.0
+  
+  # WebView for online Kundali generation
+  webview_flutter: ^4.4.2
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.13.1
+  flutter_native_splash: ^2.3.10
 
 flutter:
   uses-material-design: true
+  generate: true
   
-  # Assets
-  # assets:
-  #   - assets/images/
-  #   - assets/icons/
+  assets:
+    - assets/images/
+    - assets/icons/
+
+# Flutter Launcher Icons Configuration
+flutter_launcher_icons:
+  android: true
+  ios: false  # Set to true when iOS project is properly configured
+  image_path: "assets/icons/app_icon.png"
+  adaptive_icon_background: "#0066CC"
+  adaptive_icon_foreground: "assets/icons/app_icon_foreground.png"
   
-  # Fonts
-  # fonts:
-  #   - family: Poppins
-  #     fonts:
-  #       - asset: fonts/Poppins-Regular.ttf
-  #       - asset: fonts/Poppins-Bold.ttf
-  #         weight: 700
+  # iOS specific (enable when ios: true)
+  # remove_alpha_ios: true
+  
+  # Android specific
+  min_sdk_android: 21
+
+# Flutter Native Splash Configuration
+flutter_native_splash:
+  color: "#0066CC"
+  image: assets/images/splash_logo.png
+  color_dark: "#0066CC"
+  image_dark: assets/images/splash_logo.png
+  
+  android_12:
+    image: assets/images/splash_logo.png
+    icon_background_color: "#0066CC"
+    
+  android: true
+  ios: false  # Set to true when iOS project is properly configured
+  web: false
+  
+  android_gravity: center
+  # ios_content_mode: center  # Enable when ios: true
+  
+  fullscreen: true
