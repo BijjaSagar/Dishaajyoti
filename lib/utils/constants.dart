@@ -6,7 +6,9 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String baseUrl = 'https://api.dishaajyoti.com';
+  // For development, use: 'http://localhost:8000' or 'http://10.0.2.2:8000' (Android emulator)
+  // For production, use: 'https://api.dishaajyoti.com'
+  static const String baseUrl = 'http://localhost:8000';  // Change to your server URL
   static const String apiVersion = 'v1';
   static const String apiBaseUrl = '$baseUrl/api/$apiVersion';
 
@@ -23,6 +25,11 @@ class AppConstants {
   static const String paymentsEndpoint = '/payments';
   static const String reportsEndpoint = '/reports';
   static const String notificationsEndpoint = '/notifications';
+
+  // AI Endpoints (New)
+  static const String aiEndpoint = '/ai';
+  static const String aiQueryEndpoint = '$aiEndpoint/query';
+  static const String aiChatEndpoint = '$aiEndpoint/chat';
 
   // Timeout Configuration (in seconds)
   static const int connectionTimeout = 30;
