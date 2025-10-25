@@ -7,6 +7,7 @@ import logging
 from typing import List, Dict, Any
 from pinecone import Pinecone, ServerlessSpec
 from langchain_openai import OpenAIEmbeddings
+from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain.schema import Document
 
 logger = logging.getLogger(__name__)
@@ -76,25 +77,13 @@ class PineconeVectorStore:
         try:
             logger.info(f"Adding {len(documents)} documents to namespace: {namespace}")
 
-            # Try new langchain-pinecone first, fallback to community version
-            try:
-                from langchain_pinecone import PineconeVectorStore as LangchainPinecone
-
-                vectorstore = LangchainPinecone.from_documents(
-                    documents=documents,
-                    embedding=self.embeddings,
-                    index_name=self.index_name,
-                    namespace=namespace
-                )
-            except ImportError:
-                from langchain_community.vectorstores import Pinecone as LangchainPinecone
-
-                vectorstore = LangchainPinecone.from_documents(
-                    documents=documents,
-                    embedding=self.embeddings,
-                    index_name=self.index_name,
-                    namespace=namespace
-                )
+            # Use langchain-community Pinecone
+            vectorstore = LangchainPinecone.from_documents(
+                documents=documents,
+                embedding=self.embeddings,
+                index_name=self.index_name,
+                namespace=namespace
+            )
 
             logger.info(f"Successfully added documents to namespace: {namespace}")
 
@@ -122,23 +111,11 @@ class PineconeVectorStore:
             List of similar documents
         """
         try:
-            # Try new langchain-pinecone first, fallback to community version
-            try:
-                from langchain_pinecone import PineconeVectorStore as LangchainPinecone
-
-                vectorstore = LangchainPinecone(
-                    index=self.index,
-                    embedding=self.embeddings,
-                    namespace=namespace
-                )
-            except ImportError:
-                from langchain_community.vectorstores import Pinecone as LangchainPinecone
-
-                vectorstore = LangchainPinecone(
-                    index=self.index,
-                    embedding=self.embeddings,
-                    namespace=namespace
-                )
+            vectorstore = LangchainPinecone(
+                index=self.index,
+                embedding=self.embeddings,
+                namespace=namespace
+            )
 
             results = vectorstore.similarity_search(
                 query=query,
@@ -171,23 +148,11 @@ class PineconeVectorStore:
             List of (document, score) tuples
         """
         try:
-            # Try new langchain-pinecone first, fallback to community version
-            try:
-                from langchain_pinecone import PineconeVectorStore as LangchainPinecone
-
-                vectorstore = LangchainPinecone(
-                    index=self.index,
-                    embedding=self.embeddings,
-                    namespace=namespace
-                )
-            except ImportError:
-                from langchain_community.vectorstores import Pinecone as LangchainPinecone
-
-                vectorstore = LangchainPinecone(
-                    index=self.index,
-                    embedding=self.embeddings,
-                    namespace=namespace
-                )
+            vectorstore = LangchainPinecone(
+                index=self.index,
+                embedding=self.embeddings,
+                namespace=namespace
+            )
 
             results = vectorstore.similarity_search_with_score(
                 query=query,

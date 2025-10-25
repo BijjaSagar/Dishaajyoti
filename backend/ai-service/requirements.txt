@@ -4,12 +4,11 @@ Flask-CORS==4.0.0
 gunicorn==21.2.0
 Werkzeug==3.0.1
 
-# OpenAI and LangChain
+# OpenAI and LangChain (Compatible versions)
 openai==1.12.0
 langchain==0.1.9
 langchain-openai==0.0.6
 langchain-community==0.0.24
-langchain-pinecone==0.2.12
 
 # Vector Database
 pinecone-client==5.0.1
