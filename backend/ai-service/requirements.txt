@@ -9,7 +9,7 @@ openai==1.12.0
 langchain==0.1.9
 langchain-openai==0.0.6
 langchain-community==0.0.24
-langchain-pinecone==0.2.0
+langchain-pinecone==0.2.12
 
 # Vector Database
 pinecone-client==5.0.1
