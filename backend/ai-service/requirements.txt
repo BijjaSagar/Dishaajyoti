@@ -2,28 +2,27 @@
 Flask==3.0.0
 Flask-CORS==4.0.0
 gunicorn==21.2.0
+Werkzeug==3.0.1
 
-# OpenAI and LangChain
+# OpenAI and LangChain (Updated to compatible versions)
 openai==1.12.0
 langchain==0.1.9
 langchain-openai==0.0.6
 langchain-community==0.0.24
+langchain-pinecone==0.0.3
 
-# Vector Database
-pinecone-client==3.0.3
+# Vector Database (Updated to available version)
+pinecone-client==5.0.1
 
 # PDF Processing
 PyPDF2==3.0.1
 pdfplumber==0.10.3
-pypdf==4.0.1
 
 # Text Processing
 tiktoken==0.5.2
-sentence-transformers==2.3.1
 
 # Data Processing
 numpy==1.26.3
-pandas==2.2.0
 
 # Environment and Configuration
 python-dotenv==1.0.1
@@ -35,12 +34,5 @@ requests==2.31.0
 python-dateutil==2.8.2
 pytz==2024.1
 
-# Caching
-redis==5.0.1
-
 # Logging
 python-json-logger==2.0.7
-
-# Testing
-pytest==8.0.0
-pytest-cov==4.1.0

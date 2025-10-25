@@ -7,7 +7,10 @@ import logging
 from typing import List, Dict, Any
 from pinecone import Pinecone, ServerlessSpec
 from langchain_openai import OpenAIEmbeddings
-from langchain_community.vectorstores import Pinecone as LangchainPinecone
+try:
+    from langchain_pinecone import PineconeVectorStore as LangchainPinecone
+except ImportError:
+    from langchain_community.vectorstores import Pinecone as LangchainPinecone
 from langchain.schema import Document
 
 logger = logging.getLogger(__name__)
@@ -19,7 +22,7 @@ class PineconeVectorStore:
     def __init__(self):
         """Initialize Pinecone connection"""
         self.api_key = os.getenv('PINECONE_API_KEY')
-        self.environment = os.getenv('PINECONE_ENVIRONMENT', 'us-west1-gcp')
+        self.environment = os.getenv('PINECONE_ENVIRONMENT', 'us-west-1')
         self.index_name = os.getenv('PINECONE_INDEX_NAME', 'dishaajyoti-knowledge')
         self.embedding_dimension = int(os.getenv('EMBEDDING_DIMENSION', 1536))
 
