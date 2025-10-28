@@ -9,7 +9,18 @@ import '../screens/dashboard_screen.dart';
 import '../screens/payment_screen.dart';
 import '../screens/report_processing_screen.dart';
 import '../screens/report_detail_screen.dart';
+import '../screens/report_detail_api_screen.dart';
+import '../screens/reports_list_screen.dart';
 import '../screens/notifications_screen.dart';
+import '../screens/kundali_input_screen.dart';
+import '../screens/kundali_list_screen.dart';
+import '../screens/kundali_detail_screen.dart';
+import '../screens/palmistry_upload_screen.dart';
+import '../screens/palmistry_analysis_screen.dart';
+import '../screens/numerology_input_screen.dart';
+import '../screens/numerology_analysis_screen.dart';
+import '../screens/compatibility_check_screen.dart';
+import '../screens/compatibility_result_screen.dart';
 import '../models/service_model.dart';
 import '../models/report_model.dart';
 
@@ -29,7 +40,26 @@ class AppRoutes {
   static const String payment = '/payment';
   static const String reportProcessing = '/report-processing';
   static const String reportDetail = '/report-detail';
+  static const String reportDetailApi = '/report-detail-api';
+  static const String reportsList = '/reports-list';
   static const String notifications = '/notifications';
+
+  // Kundali routes
+  static const String kundaliInput = '/kundali-input';
+  static const String kundaliList = '/kundali-list';
+  static const String kundaliDetail = '/kundali-detail';
+
+  // Palmistry routes
+  static const String palmistryUpload = '/palmistry-upload';
+  static const String palmistryAnalysis = '/palmistry-analysis';
+
+  // Numerology routes
+  static const String numerologyInput = '/numerology-input';
+  static const String numerologyAnalysis = '/numerology-analysis';
+
+  // Compatibility routes
+  static const String compatibilityCheck = '/compatibility-check';
+  static const String compatibilityResult = '/compatibility-result';
 
   /// Get all route definitions
   static Map<String, WidgetBuilder> getRoutes() {
@@ -41,7 +71,13 @@ class AppRoutes {
       forgotPassword: (context) => const ForgotPasswordScreen(),
       profileSetup: (context) => const ProfileSetupScreen(),
       dashboard: (context) => const DashboardScreen(),
+      reportsList: (context) => const ReportsListScreen(),
       notifications: (context) => const NotificationsScreen(),
+      kundaliInput: (context) => const KundaliInputScreen(),
+      kundaliList: (context) => const KundaliListScreen(),
+      palmistryUpload: (context) => const PalmistryUploadScreen(),
+      numerologyInput: (context) => const NumerologyInputScreen(),
+      compatibilityCheck: (context) => const CompatibilityCheckScreen(),
     };
   }
 
@@ -85,6 +121,65 @@ class AppRoutes {
             report: args['report'] as Report,
             service: args['service'] as Service,
           ),
+          settings: settings,
+        );
+
+      case reportDetailApi:
+        final reportId = settings.arguments;
+        if (reportId == null) {
+          return _errorRoute('Report ID is required');
+        }
+        return MaterialPageRoute(
+          builder: (context) => ReportDetailApiScreen(
+            reportId:
+                reportId is int ? reportId : int.parse(reportId.toString()),
+          ),
+          settings: settings,
+        );
+
+      case kundaliDetail:
+        final kundaliId = settings.arguments;
+        if (kundaliId == null) {
+          return _errorRoute('Kundali ID is required');
+        }
+        return MaterialPageRoute(
+          builder: (context) => KundaliDetailScreen(
+            kundaliId:
+                kundaliId is int ? kundaliId : int.parse(kundaliId.toString()),
+          ),
+          settings: settings,
+        );
+
+      case palmistryAnalysis:
+        final analysisData = settings.arguments as Map<String, dynamic>?;
+        if (analysisData == null) {
+          return _errorRoute('Analysis data is required');
+        }
+        return MaterialPageRoute(
+          builder: (context) =>
+              PalmistryAnalysisScreen(analysisData: analysisData),
+          settings: settings,
+        );
+
+      case numerologyAnalysis:
+        final analysisData = settings.arguments as Map<String, dynamic>?;
+        if (analysisData == null) {
+          return _errorRoute('Analysis data is required');
+        }
+        return MaterialPageRoute(
+          builder: (context) =>
+              NumerologyAnalysisScreen(analysisData: analysisData),
+          settings: settings,
+        );
+
+      case compatibilityResult:
+        final compatibilityData = settings.arguments as Map<String, dynamic>?;
+        if (compatibilityData == null) {
+          return _errorRoute('Compatibility data is required');
+        }
+        return MaterialPageRoute(
+          builder: (context) =>
+              CompatibilityResultScreen(compatibilityData: compatibilityData),
           settings: settings,
         );
 
@@ -181,6 +276,96 @@ class AppRoutes {
         'report': report,
         'service': service,
       },
+    );
+  }
+
+  /// Navigate to report detail screen (API version)
+  static Future<void> navigateToReportDetailApi(
+    BuildContext context, {
+    required int reportId,
+  }) {
+    return Navigator.pushNamed(
+      context,
+      reportDetailApi,
+      arguments: reportId,
+    );
+  }
+
+  /// Navigate to reports list screen
+  static Future<void> navigateToReportsList(BuildContext context) {
+    return Navigator.pushNamed(context, reportsList);
+  }
+
+  /// Navigate to Kundali input screen
+  static Future<void> navigateToKundaliInput(BuildContext context) {
+    return Navigator.pushNamed(context, kundaliInput);
+  }
+
+  /// Navigate to Kundali list screen
+  static Future<void> navigateToKundaliList(BuildContext context) {
+    return Navigator.pushNamed(context, kundaliList);
+  }
+
+  /// Navigate to Kundali detail screen
+  static Future<void> navigateToKundaliDetail(
+    BuildContext context, {
+    required int kundaliId,
+  }) {
+    return Navigator.pushNamed(
+      context,
+      kundaliDetail,
+      arguments: kundaliId,
+    );
+  }
+
+  /// Navigate to Palmistry upload screen
+  static Future<void> navigateToPalmistryUpload(BuildContext context) {
+    return Navigator.pushNamed(context, palmistryUpload);
+  }
+
+  /// Navigate to Palmistry analysis screen
+  static Future<void> navigateToPalmistryAnalysis(
+    BuildContext context, {
+    required Map<String, dynamic> analysisData,
+  }) {
+    return Navigator.pushNamed(
+      context,
+      palmistryAnalysis,
+      arguments: analysisData,
+    );
+  }
+
+  /// Navigate to Numerology input screen
+  static Future<void> navigateToNumerologyInput(BuildContext context) {
+    return Navigator.pushNamed(context, numerologyInput);
+  }
+
+  /// Navigate to Numerology analysis screen
+  static Future<void> navigateToNumerologyAnalysis(
+    BuildContext context, {
+    required Map<String, dynamic> analysisData,
+  }) {
+    return Navigator.pushNamed(
+      context,
+      numerologyAnalysis,
+      arguments: analysisData,
+    );
+  }
+
+  /// Navigate to Compatibility check screen
+  static Future<void> navigateToCompatibilityCheck(BuildContext context) {
+    return Navigator.pushNamed(context, compatibilityCheck);
+  }
+
+  /// Navigate to Compatibility result screen
+  static Future<void> navigateToCompatibilityResult(
+    BuildContext context, {
+    required Map<String, dynamic> compatibilityData,
+  }) {
+    return Navigator.pushNamed(
+      context,
+      compatibilityResult,
+      arguments: compatibilityData,
     );
   }
 

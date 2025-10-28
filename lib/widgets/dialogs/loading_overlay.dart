@@ -26,6 +26,7 @@ class LoadingOverlay extends StatelessWidget {
             child: Center(
               child: Container(
                 padding: const EdgeInsets.all(24),
+                margin: const EdgeInsets.symmetric(horizontal: 40),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -66,6 +67,7 @@ class LoadingOverlay extends StatelessWidget {
         child: Center(
           child: Container(
             padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.symmetric(horizontal: 40),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
@@ -97,5 +99,55 @@ class LoadingOverlay extends StatelessWidget {
   /// Hide loading overlay
   static void hide(BuildContext context) {
     Navigator.of(context).pop();
+  }
+
+  /// Show loading with progress
+  static void showWithProgress(
+    BuildContext context, {
+    required String message,
+    required double progress,
+  }) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierColor: Colors.black.withValues(alpha: 0.5),
+      builder: (context) => PopScope(
+        canPop: false,
+        child: Center(
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.symmetric(horizontal: 40),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CircularProgressIndicator(
+                  value: progress,
+                  valueColor: const AlwaysStoppedAnimation<Color>(
+                    AppColors.primaryOrange,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Text(
+                  message,
+                  style: AppTypography.bodyMedium,
+                  textAlign: TextAlign.center,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  '${(progress * 100).toInt()}%',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }

@@ -77,7 +77,10 @@ class NotificationModel {
 enum NotificationType {
   general,
   reportReady,
+  reportScheduled,
+  reportFailed,
   paymentSuccess,
+  paymentConfirmed,
   paymentFailed,
   promotional,
 }

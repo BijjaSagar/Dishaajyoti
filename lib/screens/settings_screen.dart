@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../providers/language_provider.dart';
+import '../l10n/app_localizations.dart';
 
 /// Settings screen for user preferences
 ///
@@ -58,7 +59,16 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Provider.of<LanguageProvider>(context, listen: false);
 
     // Map display name to language code
-    final languageCode = language == 'English' ? 'en' : 'hi';
+    final Map<String, String> languageMap = {
+      'English': 'en',
+      'हिंदी': 'hi',
+      'मराठी': 'mr',
+      'தமிழ்': 'ta',
+      'తెలుగు': 'te',
+      'ಕನ್ನಡ': 'kn',
+    };
+
+    final languageCode = languageMap[language] ?? 'en';
     await languageProvider.setLanguage(languageCode);
 
     final prefs = await SharedPreferences.getInstance();
@@ -93,7 +103,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Settings',
+          AppLocalizations.of(context)!.settings_title,
           style: AppTypography.h3.copyWith(
             color: AppColors.textPrimary,
           ),
@@ -122,7 +132,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
         Padding(
           padding: const EdgeInsets.only(left: 4, bottom: 12),
           child: Text(
-            'Preferences',
+            AppLocalizations.of(context)!.settings_preferences,
             style: AppTypography.h3.copyWith(
               color: AppColors.textPrimary,
             ),
@@ -264,6 +274,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   void _showLanguageDialog() {
+    final languages = [
+      'English',
+      'हिंदी',
+      'मराठी',
+      'தமிழ்',
+      'తెలుగు',
+      'ಕನ್ನಡ',
+    ];
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -277,13 +296,23 @@ class _SettingsScreenState extends State<SettingsScreen> {
               color: AppColors.textPrimary,
             ),
           ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _buildLanguageOption('English'),
-              const Divider(height: 1),
-              _buildLanguageOption('Hindi'),
-            ],
+          contentPadding: const EdgeInsets.only(top: 8, bottom: 8),
+          content: SizedBox(
+            width: double.maxFinite,
+            height: 400, // Fixed height to ensure all languages are visible
+            child: ListView.separated(
+              shrinkWrap: false,
+              physics: const BouncingScrollPhysics(),
+              itemCount: languages.length,
+              separatorBuilder: (context, index) => const Divider(
+                height: 1,
+                indent: 16,
+                endIndent: 16,
+              ),
+              itemBuilder: (context, index) {
+                return _buildLanguageOption(languages[index]);
+              },
+            ),
           ),
         );
       },

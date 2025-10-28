@@ -368,6 +368,330 @@ class ApiService {
 
   /// Get Dio instance for advanced usage
   Dio get dio => _dio;
+
+  // ============================================================================
+  // KUNDALI ENDPOINTS
+  // ============================================================================
+
+  /// Generate new Kundali
+  /// Requirements: 1.1, 9.1, 9.2
+  Future<Response> generateKundali({
+    required String name,
+    required String dateOfBirth,
+    required String timeOfBirth,
+    required String placeOfBirth,
+    required double latitude,
+    required double longitude,
+    String? timezone,
+  }) async {
+    return post(
+      '/kundali/generate.php',
+      data: {
+        'name': name,
+        'date_of_birth': dateOfBirth,
+        'time_of_birth': timeOfBirth,
+        'place_of_birth': placeOfBirth,
+        'latitude': latitude,
+        'longitude': longitude,
+        if (timezone != null) 'timezone': timezone,
+      },
+    );
+  }
+
+  /// Get list of user's Kundalis
+  /// Requirements: 9.5
+  Future<Response> getKundaliList({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    return get(
+      '/kundali/list.php',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
+  }
+
+  /// Get specific Kundali by ID
+  /// Requirements: 9.5
+  Future<Response> getKundali(int kundaliId) async {
+    return get('/kundali/$kundaliId.php');
+  }
+
+  /// Generate detailed AI report for Kundali
+  /// Requirements: 1.2, 1.3, 1.4, 8.1
+  Future<Response> generateKundaliReport(int kundaliId) async {
+    return post(
+      '/kundali/generate_report.php',
+      data: {
+        'kundali_id': kundaliId,
+      },
+    );
+  }
+
+  /// Delete Kundali
+  /// Requirements: 9.5
+  Future<Response> deleteKundali(int kundaliId) async {
+    return delete('/kundali/$kundaliId.php');
+  }
+
+  // ============================================================================
+  // PALMISTRY ENDPOINTS
+  // ============================================================================
+
+  /// Upload palm images
+  /// Requirements: 5.1
+  Future<Response> uploadPalmImages({
+    required String leftHandImagePath,
+    required String rightHandImagePath,
+  }) async {
+    final formData = FormData.fromMap({
+      'left_hand': await MultipartFile.fromFile(
+        leftHandImagePath,
+        filename: 'left_hand.jpg',
+      ),
+      'right_hand': await MultipartFile.fromFile(
+        rightHandImagePath,
+        filename: 'right_hand.jpg',
+      ),
+    });
+
+    return post(
+      '/palmistry/upload.php',
+      data: formData,
+      options: Options(
+        contentType: 'multipart/form-data',
+      ),
+    );
+  }
+
+  /// Analyze palm images
+  /// Requirements: 5.2, 5.3, 5.4, 5.5
+  Future<Response> analyzePalmistry({
+    required int palmistryId,
+    String? additionalNotes,
+  }) async {
+    return post(
+      '/palmistry/analyze.php',
+      data: {
+        'palmistry_id': palmistryId,
+        if (additionalNotes != null) 'notes': additionalNotes,
+      },
+    );
+  }
+
+  /// Get list of user's palmistry records
+  /// Requirements: 9.5
+  Future<Response> getPalmistryList({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    return get(
+      '/palmistry/list.php',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
+  }
+
+  // ============================================================================
+  // NUMEROLOGY ENDPOINTS
+  // ============================================================================
+
+  /// Calculate numerology numbers
+  /// Requirements: 6.1
+  Future<Response> calculateNumerology({
+    required String fullName,
+    required String dateOfBirth,
+  }) async {
+    return post(
+      '/numerology/calculate.php',
+      data: {
+        'full_name': fullName,
+        'date_of_birth': dateOfBirth,
+      },
+    );
+  }
+
+  /// Generate numerology analysis
+  /// Requirements: 6.2, 6.3, 6.4, 6.5
+  Future<Response> analyzeNumerology({
+    required String fullName,
+    required String dateOfBirth,
+  }) async {
+    return post(
+      '/numerology/analyze.php',
+      data: {
+        'full_name': fullName,
+        'date_of_birth': dateOfBirth,
+      },
+    );
+  }
+
+  /// Get list of user's numerology records
+  /// Requirements: 9.5
+  Future<Response> getNumerologyList({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    return get(
+      '/numerology/list.php',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
+  }
+
+  // ============================================================================
+  // COMPATIBILITY ENDPOINTS
+  // ============================================================================
+
+  /// Check marriage compatibility
+  /// Requirements: 7.1, 7.2, 7.3
+  Future<Response> checkCompatibility({
+    int? person1KundaliId,
+    int? person2KundaliId,
+    Map<String, dynamic>? person1BirthDetails,
+    Map<String, dynamic>? person2BirthDetails,
+  }) async {
+    return post(
+      '/compatibility/check.php',
+      data: {
+        if (person1KundaliId != null) 'person1_kundali_id': person1KundaliId,
+        if (person2KundaliId != null) 'person2_kundali_id': person2KundaliId,
+        if (person1BirthDetails != null)
+          'person1_birth_details': person1BirthDetails,
+        if (person2BirthDetails != null)
+          'person2_birth_details': person2BirthDetails,
+      },
+    );
+  }
+
+  /// Get list of compatibility records
+  /// Requirements: 9.5
+  Future<Response> getCompatibilityList({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    return get(
+      '/compatibility/list.php',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
+  }
+
+  // ============================================================================
+  // REPORT ENDPOINTS
+  // ============================================================================
+
+  /// Get list of user's reports
+  /// Requirements: 8.4
+  Future<Response> getReportsList({
+    int page = 1,
+    int limit = 10,
+    String? serviceType,
+  }) async {
+    return get(
+      '/reports/list.php',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+        if (serviceType != null) 'service_type': serviceType,
+      },
+    );
+  }
+
+  /// Get report details
+  /// Requirements: 8.4, 9.5
+  Future<Response> getReport(int reportId) async {
+    return get('/reports/$reportId.php');
+  }
+
+  /// Download PDF report
+  /// Requirements: 8.3, 9.5
+  Future<Response> downloadReport(int reportId) async {
+    return get(
+      '/reports/$reportId/download.php',
+      options: Options(
+        responseType: ResponseType.bytes,
+      ),
+    );
+  }
+
+  // ============================================================================
+  // SERVICE ENDPOINTS
+  // ============================================================================
+
+  /// Get all active services
+  /// Requirements: 10.1
+  Future<Response> getServicesList() async {
+    return get('/services/list.php');
+  }
+
+  /// Get service details
+  /// Requirements: 10.1
+  Future<Response> getService(int serviceId) async {
+    return get('/services/$serviceId.php');
+  }
+
+  // ============================================================================
+  // ORDER ENDPOINTS
+  // ============================================================================
+
+  /// Create new order
+  /// Requirements: 10.2, 10.3
+  Future<Response> createOrder({
+    required int serviceId,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    return post(
+      '/orders/create.php',
+      data: {
+        'service_id': serviceId,
+        if (additionalData != null) 'additional_data': additionalData,
+      },
+    );
+  }
+
+  /// Get list of user's orders
+  /// Requirements: 10.4
+  Future<Response> getOrdersList({
+    int page = 1,
+    int limit = 10,
+  }) async {
+    return get(
+      '/orders/list.php',
+      queryParameters: {
+        'page': page,
+        'limit': limit,
+      },
+    );
+  }
+
+  /// Get order details
+  /// Requirements: 10.4
+  Future<Response> getOrder(int orderId) async {
+    return get('/orders/$orderId.php');
+  }
+
+  /// Update order status
+  /// Requirements: 10.5
+  Future<Response> updateOrderStatus({
+    required int orderId,
+    required String status,
+  }) async {
+    return put(
+      '/orders/$orderId/status.php',
+      data: {
+        'status': status,
+      },
+    );
+  }
 }
 
 /// Custom API exception class

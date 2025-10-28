@@ -5,6 +5,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/buttons/primary_button.dart';
 import 'report_processing_screen.dart';
+import '../l10n/app_localizations.dart';
 
 /// Payment screen for processing service payments via Razorpay
 /// Displays order summary and handles payment flow
@@ -17,10 +18,12 @@ import 'report_processing_screen.dart';
 /// 5. Trigger report generation after successful payment verification
 class PaymentScreen extends StatefulWidget {
   final Service service;
+  final String? orderId;
 
   const PaymentScreen({
     super.key,
     required this.service,
+    this.orderId,
   });
 
   @override

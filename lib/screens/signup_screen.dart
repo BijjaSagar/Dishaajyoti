@@ -1,10 +1,14 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io' show Platform;
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/inputs/custom_text_field.dart';
 import '../widgets/buttons/primary_button.dart';
+import '../widgets/buttons/secondary_button.dart';
 import '../utils/validators.dart';
+import '../services/firebase/firebase_auth_service.dart';
 
 /// Signup screen with name, email, password, and confirm password fields
 /// Includes Terms & Conditions checkbox and form validation
@@ -21,6 +25,7 @@ class _SignupScreenState extends State<SignupScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
+  final FirebaseAuthService _authService = FirebaseAuthService.instance;
 
   bool _isPasswordVisible = false;
   bool _isConfirmPasswordVisible = false;
@@ -101,28 +106,159 @@ class _SignupScreenState extends State<SignupScreen> {
     });
 
     try {
-      // TODO: Implement actual signup logic with AuthService
-      // For now, simulate API call
-      await Future.delayed(const Duration(seconds: 2));
+      // Sign up with Firebase Authentication
+      await _authService.signUpWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+        name: _nameController.text.trim(),
+      );
 
       // Navigate to profile setup on success
       if (mounted) {
         Navigator.of(context).pushReplacementNamed('/profile-setup');
       }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Registration failed: ${e.toString()}'),
-            backgroundColor: AppColors.error,
-          ),
-        );
-      }
-    } finally {
+    } on FirebaseAuthException catch (e) {
       if (mounted) {
         setState(() {
           _isLoading = false;
         });
+
+        String errorMessage = 'Registration failed';
+        switch (e.code) {
+          case 'email-already-in-use':
+            errorMessage = 'An account already exists with this email';
+            break;
+          case 'invalid-email':
+            errorMessage = 'Invalid email address';
+            break;
+          case 'operation-not-allowed':
+            errorMessage = 'Email/password accounts are not enabled';
+            break;
+          case 'weak-password':
+            errorMessage = 'Password is too weak';
+            break;
+          default:
+            errorMessage = e.message ?? 'Registration failed';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleGoogleSignup() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Sign up with Google
+      await _authService.signInWithGoogle();
+
+      // Navigate to profile setup on success
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/profile-setup');
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        String errorMessage = 'Google Sign-Up failed';
+        if (e.code == 'ERROR_ABORTED_BY_USER' || e.code == 'sign_in_canceled') {
+          errorMessage = 'Sign-up cancelled';
+        } else if (e.code == 'account-exists-with-different-credential') {
+          errorMessage = 'An account already exists with this email';
+        } else if (e.message != null) {
+          errorMessage = e.message!;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleAppleSignup() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Sign up with Apple
+      await _authService.signInWithApple();
+
+      // Navigate to profile setup on success
+      if (mounted) {
+        Navigator.of(context).pushReplacementNamed('/profile-setup');
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        String errorMessage = 'Apple Sign-Up failed';
+        if (e.code == 'sign_in_canceled' || e.code == '1001') {
+          errorMessage = 'Sign-up cancelled';
+        } else if (e.code == 'account-exists-with-different-credential') {
+          errorMessage = 'An account already exists with this email';
+        } else if (e.message != null) {
+          errorMessage = e.message!;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
       }
     }
   }
@@ -360,6 +496,51 @@ class _SignupScreenState extends State<SignupScreen> {
                   isLoading: _isLoading,
                 ),
                 const SizedBox(height: 32),
+
+                // Divider with "OR"
+                Row(
+                  children: [
+                    const Expanded(
+                      child: Divider(
+                        color: AppColors.mediumGray,
+                        thickness: 1,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: Text(
+                        'OR',
+                        style: AppTypography.bodyMedium.copyWith(
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
+                    ),
+                    const Expanded(
+                      child: Divider(
+                        color: AppColors.mediumGray,
+                        thickness: 1,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 32),
+
+                // Social signup buttons
+                SecondaryButton(
+                  label: 'Sign up with Google',
+                  icon: Icons.g_mobiledata,
+                  onPressed: _isLoading ? null : _handleGoogleSignup,
+                ),
+                const SizedBox(height: 16),
+                // Show Apple Sign-In only on iOS
+                if (Platform.isIOS)
+                  SecondaryButton(
+                    label: 'Sign up with Apple',
+                    icon: Icons.apple,
+                    onPressed: _isLoading ? null : _handleAppleSignup,
+                  ),
+                if (Platform.isIOS) const SizedBox(height: 32),
+                if (!Platform.isIOS) const SizedBox(height: 32),
 
                 // Sign in link
                 Row(

@@ -1,0 +1,54 @@
+rules_version = '2';
+
+// Firebase Storage Security Rules for DishaAjyoti
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isValidImageSize() {
+      return request.resource.size < 10 * 1024 * 1024; // 10MB limit
+    }
+    
+    function isValidPDFSize() {
+      return request.resource.size < 50 * 1024 * 1024; // 50MB limit
+    }
+    
+    // User uploads (palmistry images, profile pictures, etc.)
+    match /uploads/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if isOwner(userId) && isValidImageSize();
+    }
+    
+    // Generated reports (PDFs, charts)
+    match /reports/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write
+    }
+    
+    // Kundali files
+    match /kundalis/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write
+    }
+    
+    // Palmistry analysis images
+    match /palmistry/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write
+    }
+    
+    // Numerology reports
+    match /numerology/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write
+    }
+  }
+}

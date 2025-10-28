@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:printing/printing.dart';
-import 'dart:io';
+import '../models/kundali_with_chart_model.dart';
+import '../services/kundali_chart_service.dart';
+import '../widgets/kundali_chart_widget.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
-import '../models/kundali_model.dart';
-import '../services/database_helper.dart';
+import '../l10n/app_localizations.dart';
+import 'kundali_chart_detail_screen.dart';
 
-/// Screen to display list of generated Kundalis
+/// Kundali List Screen
+/// Requirements: 1.1, 9.5
 class KundaliListScreen extends StatefulWidget {
   const KundaliListScreen({super.key});
 
@@ -15,31 +17,44 @@ class KundaliListScreen extends StatefulWidget {
 }
 
 class _KundaliListScreenState extends State<KundaliListScreen> {
-  List<Kundali> _kundalis = [];
-  bool _isLoading = true;
+  List<KundaliWithChart> _kundaliList = [];
+  bool _isLoading = false;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
-    _loadKundalis();
+    _loadKundaliList();
   }
 
-  Future<void> _loadKundalis() async {
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _loadKundaliList() async {
     setState(() {
       _isLoading = true;
     });
 
     try {
-      final kundalis = await DatabaseHelper.instance
-          .getKundalis('user123'); // TODO: Get from auth
+      // Load from local database
+      print('Loading Kundalis from local database...');
+      final kundalis =
+          await KundaliChartService.instance.loadKundalis('user123');
+      print('Loaded ${kundalis.length} Kundalis from database');
+
       setState(() {
-        _kundalis = kundalis;
+        _kundaliList = kundalis;
         _isLoading = false;
       });
     } catch (e) {
+      print('Error loading Kundalis: $e');
       setState(() {
         _isLoading = false;
       });
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -51,39 +66,49 @@ class _KundaliListScreenState extends State<KundaliListScreen> {
     }
   }
 
-  Future<void> _viewPdf(Kundali kundali) async {
-    if (kundali.pdfPath == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('PDF not available'),
-          backgroundColor: AppColors.error,
-        ),
-      );
-      return;
-    }
+  Future<void> _deleteKundali(String kundaliId, int index) async {
+    final l10n = AppLocalizations.of(context)!;
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.common_delete),
+        content: Text(l10n.kundali_delete_confirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(l10n.common_cancel),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: Text(l10n.common_delete),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
 
     try {
-      final file = File(kundali.pdfPath!);
-      if (await file.exists()) {
-        final bytes = await file.readAsBytes();
-        await Printing.layoutPdf(
-          onLayout: (format) async => bytes,
+      await KundaliChartService.instance.deleteKundali(kundaliId);
+
+      setState(() {
+        _kundaliList.removeAt(index);
+      });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.kundali_deleted_success),
+            backgroundColor: AppColors.success,
+          ),
         );
-      } else {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('PDF file not found'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to open PDF: ${e.toString()}'),
+            content: Text('Failed to delete: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -91,92 +116,53 @@ class _KundaliListScreenState extends State<KundaliListScreen> {
     }
   }
 
-  Future<void> _deleteKundali(Kundali kundali) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Delete Kundali'),
-        content:
-            Text('Are you sure you want to delete ${kundali.name}\'s Kundali?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AppColors.error),
-            child: const Text('Delete'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      try {
-        await DatabaseHelper.instance.deleteKundali(kundali.id);
-
-        // Delete PDF file
-        if (kundali.pdfPath != null) {
-          final file = File(kundali.pdfPath!);
-          if (await file.exists()) {
-            await file.delete();
-          }
-        }
-
-        _loadKundalis();
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kundali deleted successfully'),
-              backgroundColor: AppColors.success,
-            ),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Failed to delete: ${e.toString()}'),
-              backgroundColor: AppColors.error,
-            ),
-          );
-        }
-      }
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
-      backgroundColor: AppColors.lightGray,
+      backgroundColor: AppColors.white,
       appBar: AppBar(
         backgroundColor: AppColors.white,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: AppColors.primaryBlue),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
         title: Text(
-          'My Kundalis',
+          l10n.kundali_my_kundalis,
           style: AppTypography.h3.copyWith(
             color: AppColors.primaryBlue,
           ),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh, color: AppColors.primaryOrange),
+            onPressed: _loadKundaliList,
+            tooltip: l10n.common_refresh,
+          ),
+        ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _kundalis.isEmpty
-              ? _buildEmptyState()
-              : _buildKundaliList(),
+      body: _buildBody(),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          Navigator.pop(context);
+        },
+        backgroundColor: AppColors.primaryOrange,
+        icon: const Icon(Icons.add),
+        label: Text(l10n.kundali_new_kundali),
+      ),
     );
   }
 
-  Widget _buildEmptyState() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
+  Widget _buildBody() {
+    final l10n = AppLocalizations.of(context)!;
+
+    if (_isLoading && _kundaliList.isEmpty) {
+      return const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(AppColors.primaryOrange),
+        ),
+      );
+    }
+
+    if (_kundaliList.isEmpty) {
+      return Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -187,37 +173,54 @@ class _KundaliListScreenState extends State<KundaliListScreen> {
             ),
             const SizedBox(height: 16),
             Text(
-              'No Kundalis Yet',
+              l10n.kundali_no_kundalis,
               style: AppTypography.h2.copyWith(
-                color: AppColors.textPrimary,
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
             Text(
-              'Generate your first free Kundali from the services section',
+              l10n.kundali_create_first,
               style: AppTypography.bodyMedium.copyWith(
                 color: AppColors.textSecondary,
               ),
-              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryOrange,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 12,
+                ),
+              ),
+              icon: const Icon(Icons.add),
+              label: Text(l10n.kundali_create_kundali),
             ),
           ],
         ),
+      );
+    }
+
+    return RefreshIndicator(
+      onRefresh: _loadKundaliList,
+      color: AppColors.primaryOrange,
+      child: ListView.builder(
+        controller: _scrollController,
+        padding: const EdgeInsets.all(16),
+        itemCount: _kundaliList.length,
+        itemBuilder: (context, index) {
+          final kundali = _kundaliList[index];
+          return _buildKundaliCard(kundali, index);
+        },
       ),
     );
   }
 
-  Widget _buildKundaliList() {
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
-      itemCount: _kundalis.length,
-      itemBuilder: (context, index) {
-        final kundali = _kundalis[index];
-        return _buildKundaliCard(kundali);
-      },
-    );
-  }
-
-  Widget _buildKundaliCard(Kundali kundali) {
+  Widget _buildKundaliCard(KundaliWithChart kundali, int index) {
     return Card(
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
@@ -225,76 +228,130 @@ class _KundaliListScreenState extends State<KundaliListScreen> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: InkWell(
-        onTap: () => _viewPdf(kundali),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => KundaliChartDetailScreen(kundali: kundali),
+            ),
+          );
+        },
         borderRadius: BorderRadius.circular(12),
         child: Padding(
           padding: const EdgeInsets.all(16),
-          child: Column(
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryBlue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: const Icon(
-                      Icons.auto_awesome,
-                      color: AppColors.primaryBlue,
-                      size: 24,
-                    ),
+              // Chart Thumbnail
+              Container(
+                width: 100,
+                height: 100,
+                decoration: BoxDecoration(
+                  color: AppColors.lightBlue.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(
+                    color: AppColors.primaryBlue.withValues(alpha: 0.2),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: KundaliChartWidget(
+                    chartData: kundali.chartData,
+                    size: 100,
+                    showLegend: false,
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+
+              // Details
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
                       children: [
-                        Text(
-                          kundali.name,
-                          style: AppTypography.h3.copyWith(
-                            color: AppColors.textPrimary,
+                        Expanded(
+                          child: Text(
+                            kundali.name,
+                            style: AppTypography.h3.copyWith(
+                              color: AppColors.primaryBlue,
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Generated on ${kundali.createdAt.day}/${kundali.createdAt.month}/${kundali.createdAt.year}',
-                          style: AppTypography.bodySmall.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
+                        PopupMenuButton<String>(
+                          onSelected: (value) {
+                            if (value == 'delete') {
+                              _deleteKundali(kundali.id, index);
+                            }
+                          },
+                          itemBuilder: (context) => [
+                            const PopupMenuItem(
+                              value: 'delete',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete,
+                                      color: AppColors.error, size: 20),
+                                  SizedBox(width: 8),
+                                  Text('Delete'),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline),
-                    color: AppColors.error,
-                    onPressed: () => _deleteKundali(kundali),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              const Divider(),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.calendar_today, 'DOB',
-                  '${kundali.dateOfBirth.day}/${kundali.dateOfBirth.month}/${kundali.dateOfBirth.year}'),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.access_time, 'Time', kundali.timeOfBirth),
-              const SizedBox(height: 8),
-              _buildInfoRow(Icons.location_on, 'Place', kundali.placeOfBirth),
-              if (kundali.data != null) ...[
-                const SizedBox(height: 12),
-                const Divider(),
-                const SizedBox(height: 8),
-                Row(
-                  children: [
-                    _buildBadge('Sun: ${kundali.data!.sunSign}'),
-                    const SizedBox(width: 8),
-                    _buildBadge('Moon: ${kundali.data!.moonSign}'),
+                    const SizedBox(height: 4),
+                    Text(
+                      '${kundali.dateOfBirth.day}/${kundali.dateOfBirth.month}/${kundali.dateOfBirth.year}',
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _buildInfoChip(
+                      icon: Icons.location_on,
+                      label: kundali.placeOfBirth,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color:
+                                AppColors.primaryOrange.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            kundali.chartStyleDisplayName,
+                            style: AppTypography.bodySmall.copyWith(
+                              color: AppColors.primaryOrange,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (kundali.isPendingSync)
+                          const Icon(
+                            Icons.cloud_upload,
+                            size: 16,
+                            color: AppColors.warning,
+                          ),
+                        if (kundali.isSynced)
+                          const Icon(
+                            Icons.cloud_done,
+                            size: 16,
+                            color: AppColors.success,
+                          ),
+                      ],
+                    ),
                   ],
                 ),
-              ],
+              ),
             ],
           ),
         ),
@@ -302,43 +359,28 @@ class _KundaliListScreenState extends State<KundaliListScreen> {
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      children: [
-        Icon(icon, size: 16, color: AppColors.textSecondary),
-        const SizedBox(width: 8),
-        Text(
-          '$label: ',
-          style: AppTypography.bodySmall.copyWith(
-            color: AppColors.textSecondary,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: AppTypography.bodySmall.copyWith(
-              color: AppColors.textPrimary,
+  Widget _buildInfoChip({required IconData icon, required String label}) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: AppColors.lightBlue.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: AppColors.primaryBlue),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: AppTypography.bodySmall.copyWith(
+                color: AppColors.textSecondary,
+              ),
+              overflow: TextOverflow.ellipsis,
             ),
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildBadge(String text) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: AppColors.primaryOrange.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Text(
-        text,
-        style: AppTypography.bodySmall.copyWith(
-          color: AppColors.primaryOrange,
-          fontWeight: FontWeight.w600,
-        ),
+        ],
       ),
     );
   }

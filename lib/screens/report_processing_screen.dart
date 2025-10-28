@@ -1,6 +1,9 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../models/report_model.dart';
 import '../models/service_model.dart';
+import '../models/firebase/service_report_model.dart';
+import '../services/firebase/firestore_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/buttons/primary_button.dart';
@@ -8,14 +11,21 @@ import 'report_detail_screen.dart';
 
 /// Report processing screen that shows progress while AI generates the report
 /// Displays animated loading state and navigates to report detail on completion
+/// Supports real-time Firebase updates for report status
 class ReportProcessingScreen extends StatefulWidget {
-  final String paymentId;
-  final Service service;
+  final String? paymentId;
+  final Service? service;
+  final String? reportId;
+  final ServiceType? serviceType;
+  final DateTime? estimatedDelivery;
 
   const ReportProcessingScreen({
     super.key,
-    required this.paymentId,
-    required this.service,
+    this.paymentId,
+    this.service,
+    this.reportId,
+    this.serviceType,
+    this.estimatedDelivery,
   });
 
   @override
@@ -31,12 +41,20 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
   double _progress = 0.0;
   String _statusMessage = 'Initializing AI processor...';
   Report? _generatedReport;
+  ServiceReport? _firebaseReport;
+  StreamSubscription<ServiceReport?>? _reportSubscription;
 
   @override
   void initState() {
     super.initState();
     _initializeAnimations();
-    _startReportGeneration();
+
+    // Use Firebase real-time updates if reportId is provided
+    if (widget.reportId != null) {
+      _listenToFirebaseReport();
+    } else {
+      _startReportGeneration();
+    }
   }
 
   void _initializeAnimations() {
@@ -56,7 +74,70 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
   @override
   void dispose() {
     _animationController.dispose();
+    _reportSubscription?.cancel();
     super.dispose();
+  }
+
+  /// Listen to Firebase report updates in real-time
+  void _listenToFirebaseReport() {
+    _reportSubscription = FirestoreService.instance
+        .watchReport(widget.reportId!)
+        .listen((report) {
+      if (report == null) return;
+
+      setState(() {
+        _firebaseReport = report;
+        _updateStatusFromFirebase(report);
+      });
+
+      // Auto-navigate when completed
+      if (report.status == ServiceReportStatus.completed && report.isReady) {
+        _animationController.stop();
+        Future.delayed(const Duration(seconds: 1), () {
+          if (mounted) {
+            _navigateToReportDetail();
+          }
+        });
+      }
+    });
+  }
+
+  /// Update UI status based on Firebase report status
+  void _updateStatusFromFirebase(ServiceReport report) {
+    switch (report.status) {
+      case ServiceReportStatus.pending:
+        _progress = 0.1;
+        _statusMessage = 'Request received...';
+        _reportStatus = ReportStatus.generating;
+        break;
+      case ServiceReportStatus.scheduled:
+        _progress = 0.2;
+        if (widget.estimatedDelivery != null) {
+          final remaining =
+              widget.estimatedDelivery!.difference(DateTime.now());
+          final hours = remaining.inHours;
+          _statusMessage = 'Scheduled for processing in $hours hours';
+        } else {
+          _statusMessage = 'Scheduled for processing...';
+        }
+        _reportStatus = ReportStatus.generating;
+        break;
+      case ServiceReportStatus.processing:
+        _progress = 0.6;
+        _statusMessage = 'AI is generating your report...';
+        _reportStatus = ReportStatus.generating;
+        break;
+      case ServiceReportStatus.completed:
+        _progress = 1.0;
+        _statusMessage = 'Report ready!';
+        _reportStatus = ReportStatus.ready;
+        break;
+      case ServiceReportStatus.failed:
+        _progress = 0.0;
+        _statusMessage = report.errorMessage ?? 'Failed to generate report';
+        _reportStatus = ReportStatus.failed;
+        break;
+    }
   }
 
   Future<void> _startReportGeneration() async {
@@ -104,9 +185,10 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
       final report = Report(
         id: 'report_${DateTime.now().millisecondsSinceEpoch}',
         userId: 'user_123', // Replace with actual user ID
-        serviceId: widget.service.id,
-        paymentId: widget.paymentId,
-        fileName: '${widget.service.name.replaceAll(' ', '_')}_Report.pdf',
+        serviceId: widget.service?.id ?? 'unknown',
+        paymentId: widget.paymentId ?? 'unknown',
+        fileName:
+            '${widget.service?.name.replaceAll(' ', '_') ?? 'Report'}_Report.pdf',
         fileUrl:
             'https://example.com/reports/sample.pdf', // Replace with actual URL
         fileSize: 1024000, // 1MB
@@ -138,15 +220,19 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
   }
 
   void _navigateToReportDetail() {
-    if (_generatedReport != null) {
+    if (_generatedReport != null && widget.service != null) {
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (context) => ReportDetailScreen(
             report: _generatedReport!,
-            service: widget.service,
+            service: widget.service!,
           ),
         ),
       );
+    } else if (_firebaseReport != null) {
+      // Navigate to Firebase report detail screen
+      // TODO: Implement Firebase report detail navigation
+      Navigator.of(context).pop();
     }
   }
 
@@ -248,7 +334,7 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
                 ),
                 child: Center(
                   child: Text(
-                    widget.service.icon,
+                    widget.service?.icon ?? _getServiceIcon(),
                     style: const TextStyle(fontSize: 56),
                   ),
                 ),
@@ -259,7 +345,13 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
 
             // Service Name
             Text(
-              widget.service.name,
+              widget.service?.name ??
+                  widget.serviceType
+                      ?.toString()
+                      .split('.')
+                      .last
+                      .toUpperCase() ??
+                  'Report',
               style: AppTypography.h2.copyWith(
                 color: AppColors.textPrimary,
               ),
@@ -478,5 +570,22 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
         ],
       ),
     );
+  }
+
+  String _getServiceIcon() {
+    switch (widget.serviceType) {
+      case ServiceType.kundali:
+        return '🌟';
+      case ServiceType.palmistry:
+        return '🤚';
+      case ServiceType.numerology:
+        return '🔢';
+      case ServiceType.matchmaking:
+        return '💑';
+      case ServiceType.panchang:
+        return '📅';
+      default:
+        return '✨';
+    }
   }
 }

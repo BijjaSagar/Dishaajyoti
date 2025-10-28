@@ -90,4 +90,17 @@ class Service {
       updatedAt: updatedAt ?? this.updatedAt,
     );
   }
+
+  // Testing mode - makes all services free
+  static const bool testingMode = true; // Set to false for production
+
+  // Check if service is free (for testing or actually free)
+  bool get isFree => testingMode || price == 0;
+
+  // Get display price (shows "Free" in testing mode)
+  String get displayPrice {
+    if (testingMode) return 'Free (Testing)';
+    if (price == 0) return 'Free';
+    return '$currency $price';
+  }
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 
 class OnboardingModel {
   final String title;
@@ -15,53 +16,49 @@ class OnboardingModel {
     required this.color,
   });
 
-  static List<OnboardingModel> getSlides() {
+  static List<OnboardingModel> getSlides(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return [
       OnboardingModel(
-        title: 'Career Guidance Made Simple',
-        subtitle: 'Discover Your Path',
-        description:
-            'Get personalized career guidance based on ancient wisdom and modern AI technology',
+        title: l10n.onboarding_slide1_title,
+        subtitle: l10n.onboarding_slide1_subtitle,
+        description: l10n.onboarding_slide1_description,
         icon: '🎯',
         color: const Color(0xFF0066CC),
       ),
       OnboardingModel(
-        title: 'Palmistry Analysis',
-        subtitle: 'Read Your Future',
-        description:
-            'Upload your palm image and receive detailed analysis of your life lines and destiny',
+        title: l10n.onboarding_slide2_title,
+        subtitle: l10n.onboarding_slide2_subtitle,
+        description: l10n.onboarding_slide2_description,
         icon: '✋',
         color: const Color(0xFF2196F3),
       ),
       OnboardingModel(
-        title: 'Vedic Jyotish',
-        subtitle: 'Ancient Astrology',
-        description:
-            'Get insights from Vedic astrology based on your birth details and planetary positions',
+        title: l10n.onboarding_slide3_title,
+        subtitle: l10n.onboarding_slide3_subtitle,
+        description: l10n.onboarding_slide3_description,
         icon: '⭐',
         color: const Color(0xFF4CAF50),
       ),
       OnboardingModel(
-        title: 'Numerology',
-        subtitle: 'Power of Numbers',
-        description:
-            'Discover the hidden meanings in your numbers and how they influence your life',
+        title: l10n.onboarding_slide4_title,
+        subtitle: l10n.onboarding_slide4_subtitle,
+        description: l10n.onboarding_slide4_description,
         icon: '🔢',
         color: const Color(0xFFFF9800),
       ),
       OnboardingModel(
-        title: 'Personalized Reports',
-        subtitle: 'AI-Powered Insights',
-        description:
-            'Receive comprehensive PDF reports with actionable guidance for your career and life',
+        title: l10n.onboarding_slide5_title,
+        subtitle: l10n.onboarding_slide5_subtitle,
+        description: l10n.onboarding_slide5_description,
         icon: '📄',
         color: const Color(0xFF9C27B0),
       ),
       OnboardingModel(
-        title: 'Ready to Begin',
-        subtitle: 'Start Your Journey',
-        description:
-            'Join thousands of users who have found clarity and direction with DishaAjyoti',
+        title: l10n.onboarding_slide6_title,
+        subtitle: l10n.onboarding_slide6_subtitle,
+        description: l10n.onboarding_slide6_description,
         icon: '🚀',
         color: const Color(0xFFFF6B35),
       ),

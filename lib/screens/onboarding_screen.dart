@@ -6,6 +6,7 @@ import '../widgets/buttons/primary_button.dart';
 import '../widgets/buttons/secondary_button.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../l10n/app_localizations.dart';
 
 /// Onboarding screen with 6 slides showcasing app features
 class OnboardingScreen extends StatefulWidget {
@@ -18,7 +19,14 @@ class OnboardingScreen extends StatefulWidget {
 class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
-  final List<OnboardingModel> _slides = OnboardingModel.getSlides();
+  List<OnboardingModel> _slides = [];
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Initialize slides with localized content
+    _slides = OnboardingModel.getSlides(context);
+  }
 
   @override
   void dispose() {
@@ -68,6 +76,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final bool isFirstPage = _currentPage == 0;
     final bool isLastPage = _currentPage == _slides.length - 1;
 
@@ -86,8 +95,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   if (!isFirstPage)
                     Semantics(
                       button: true,
-                      label: 'Go back to previous slide',
-                      hint: 'Double tap to go back',
+                      label: l10n.onboarding_back,
+                      hint: l10n.onboarding_back_hint,
                       child: IconButton(
                         icon: const Icon(Icons.arrow_back),
                         color: AppColors.primaryBlue,
@@ -100,12 +109,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // Skip button
                   Semantics(
                     button: true,
-                    label: 'Skip onboarding',
-                    hint: 'Double tap to skip introduction and go to login',
+                    label: l10n.onboarding_skip,
+                    hint: l10n.onboarding_skip_hint,
                     child: TextButton(
                       onPressed: _skipOnboarding,
                       child: Text(
-                        'Skip',
+                        l10n.onboarding_skip,
                         style: AppTypography.button.copyWith(
                           color: AppColors.primaryBlue,
                           fontSize: 14,
@@ -131,7 +140,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
             // Page indicators (dots)
             Semantics(
-              label: 'Page ${_currentPage + 1} of ${_slides.length}',
+              label: l10n.onboarding_page_indicator(
+                _currentPage + 1,
+                _slides.length,
+              ),
               child: Padding(
                 padding: const EdgeInsets.symmetric(vertical: 24),
                 child: Row(
@@ -162,7 +174,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   // Next/Get Started button
                   PrimaryButton(
-                    label: isLastPage ? 'Get Started' : 'Next',
+                    label: isLastPage
+                        ? l10n.onboarding_get_started
+                        : l10n.onboarding_next,
                     onPressed: _nextPage,
                     width: double.infinity,
                   ),
@@ -171,7 +185,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   if (!isFirstPage) ...[
                     const SizedBox(height: 12),
                     SecondaryButton(
-                      label: 'Back',
+                      label: l10n.onboarding_back,
                       onPressed: _previousPage,
                       width: double.infinity,
                     ),

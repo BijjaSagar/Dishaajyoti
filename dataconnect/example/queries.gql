@@ -1,0 +1,44 @@
+mutation CreateUser @auth(level: USER) {
+  user_insert(data: {
+    firebaseUID_expr: "auth.uid",
+    createdAt_expr: "request.time"
+  })
+}
+
+query GetBirthChartProfiles @auth(level: USER) {
+  birthChartProfiles(where: {userId: {eq_expr: "auth.uid"}}) {
+    id
+    name
+    birthDate
+    birthTime
+    birthLatitude
+    birthLongitude
+    birthLocationName
+  }
+}
+
+mutation CreateBirthChartProfile(
+  $name: String!
+  $birthDate: Date!
+  $birthTime: Timestamp!
+  $birthLatitude: Float!
+  $birthLongitude: Float!
+  $birthLocationName: String!
+  $notes: String
+) @auth(level: USER) {
+  birthChartProfile_insert(data: {
+    userId_expr: "auth.uid",
+    name: $name,
+    birthDate: $birthDate,
+    birthTime: $birthTime,
+    birthLatitude: $birthLatitude,
+    birthLongitude: $birthLongitude,
+    birthLocationName: $birthLocationName,
+    notes: $notes,
+    createdAt_expr: "request.time"
+  })
+}
+
+mutation DeleteBirthChartProfile($id: UUID!) @auth(level: USER) {
+  birthChartProfile_delete(key: {id: $id})
+}

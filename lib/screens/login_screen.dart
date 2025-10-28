@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:io' show Platform;
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/inputs/custom_text_field.dart';
 import '../widgets/buttons/primary_button.dart';
 import '../widgets/buttons/secondary_button.dart';
 import '../utils/validators.dart';
+import '../services/firebase/firebase_auth_service.dart';
 import 'signup_screen.dart';
 import 'forgot_password_screen.dart';
 import 'dashboard_screen.dart';
@@ -22,6 +25,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
+  final FirebaseAuthService _authService = FirebaseAuthService.instance;
 
   bool _isPasswordVisible = false;
   bool _isLoading = false;
@@ -67,25 +71,54 @@ class _LoginScreenState extends State<LoginScreen> {
     });
 
     try {
-      // TODO: Implement actual login logic with AuthService
-      // For now, simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-
-      // Stop loading state first
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
-
-      // Small delay to ensure state update completes
-      await Future.delayed(const Duration(milliseconds: 50));
+      // Sign in with Firebase Authentication
+      await _authService.signInWithEmail(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
 
       // Navigate to dashboard on success
       if (mounted) {
         await Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (context) => const DashboardScreen(),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        String errorMessage = 'Login failed';
+        switch (e.code) {
+          case 'user-not-found':
+            errorMessage = 'No user found with this email';
+            break;
+          case 'wrong-password':
+            errorMessage = 'Incorrect password';
+            break;
+          case 'invalid-email':
+            errorMessage = 'Invalid email address';
+            break;
+          case 'user-disabled':
+            errorMessage = 'This account has been disabled';
+            break;
+          case 'too-many-requests':
+            errorMessage = 'Too many attempts. Please try again later';
+            break;
+          case 'invalid-credential':
+            errorMessage = 'Invalid email or password';
+            break;
+          default:
+            errorMessage = e.message ?? 'Login failed';
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
           ),
         );
       }
@@ -96,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
         });
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Login failed: ${e.toString()}'),
+            content: Text('An error occurred: ${e.toString()}'),
             backgroundColor: AppColors.error,
           ),
         );
@@ -105,23 +138,111 @@ class _LoginScreenState extends State<LoginScreen> {
   }
 
   Future<void> _handleGoogleLogin() async {
-    // TODO: Implement Google Sign-In
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Google Sign-In coming soon'),
-        backgroundColor: AppColors.primaryBlue,
-      ),
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Sign in with Google
+      await _authService.signInWithGoogle();
+
+      // Navigate to dashboard on success
+      if (mounted) {
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const DashboardScreen(),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        String errorMessage = 'Google Sign-In failed';
+        if (e.code == 'ERROR_ABORTED_BY_USER' || e.code == 'sign_in_canceled') {
+          errorMessage = 'Sign-in cancelled';
+        } else if (e.code == 'account-exists-with-different-credential') {
+          errorMessage = 'An account already exists with this email';
+        } else if (e.message != null) {
+          errorMessage = e.message!;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _handleAppleLogin() async {
-    // TODO: Implement Apple Sign-In
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Apple Sign-In coming soon'),
-        backgroundColor: AppColors.primaryBlue,
-      ),
-    );
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      // Sign in with Apple
+      await _authService.signInWithApple();
+
+      // Navigate to dashboard on success
+      if (mounted) {
+        await Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => const DashboardScreen(),
+          ),
+        );
+      }
+    } on FirebaseAuthException catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+
+        String errorMessage = 'Apple Sign-In failed';
+        if (e.code == 'sign_in_canceled' || e.code == '1001') {
+          errorMessage = 'Sign-in cancelled';
+        } else if (e.code == 'account-exists-with-different-credential') {
+          errorMessage = 'An account already exists with this email';
+        } else if (e.message != null) {
+          errorMessage = e.message!;
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(errorMessage),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+          ),
+        );
+      }
+    }
   }
 
   void _navigateToForgotPassword() {
@@ -297,15 +418,18 @@ class _LoginScreenState extends State<LoginScreen> {
                 SecondaryButton(
                   label: 'Continue with Google',
                   icon: Icons.g_mobiledata,
-                  onPressed: _handleGoogleLogin,
+                  onPressed: _isLoading ? null : _handleGoogleLogin,
                 ),
                 const SizedBox(height: 16),
-                SecondaryButton(
-                  label: 'Continue with Apple',
-                  icon: Icons.apple,
-                  onPressed: _handleAppleLogin,
-                ),
-                const SizedBox(height: 32),
+                // Show Apple Sign-In only on iOS
+                if (Platform.isIOS)
+                  SecondaryButton(
+                    label: 'Continue with Apple',
+                    icon: Icons.apple,
+                    onPressed: _isLoading ? null : _handleAppleLogin,
+                  ),
+                if (Platform.isIOS) const SizedBox(height: 32),
+                if (!Platform.isIOS) const SizedBox(height: 32),
 
                 // Sign up link
                 Semantics(

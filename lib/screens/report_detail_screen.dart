@@ -4,6 +4,7 @@ import 'package:syncfusion_flutter_pdfviewer/pdfviewer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:dio/dio.dart';
+import 'package:share_plus/share_plus.dart';
 import '../models/report_model.dart';
 import '../models/service_model.dart';
 import '../theme/app_colors.dart';
@@ -386,14 +387,68 @@ class _ReportDetailScreenState extends State<ReportDetailScreen> {
     return null;
   }
 
-  void _handleShare() {
-    // TODO: Implement share functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Share functionality coming soon'),
-        backgroundColor: AppColors.info,
-      ),
-    );
+  Future<void> _handleShare() async {
+    try {
+      // Check if file exists locally
+      final directory = await _getDownloadDirectory();
+      if (directory == null) {
+        throw Exception('Could not access storage');
+      }
+
+      final fileName = widget.report.fileName;
+      final filePath = '${directory.path}/$fileName';
+      final file = File(filePath);
+
+      // If file doesn't exist locally, download it first
+      if (!await file.exists()) {
+        setState(() {
+          _isDownloading = true;
+          _downloadProgress = 0.0;
+        });
+
+        final dio = Dio();
+        await dio.download(
+          widget.report.fileUrl,
+          filePath,
+          onReceiveProgress: (received, total) {
+            if (total != -1) {
+              setState(() {
+                _downloadProgress = received / total;
+              });
+            }
+          },
+        );
+
+        setState(() {
+          _isDownloading = false;
+        });
+      }
+
+      // Share the file
+      final result = await Share.shareXFiles(
+        [XFile(filePath)],
+        subject: 'DishaAjyoti Report - ${widget.service.name}',
+        text: 'Here is your ${widget.service.name} report from DishaAjyoti',
+      );
+
+      if (result.status == ShareResultStatus.success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Report shared successfully'),
+              backgroundColor: AppColors.success,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        _showErrorDialog(
+          'Share Failed',
+          'Failed to share report: $e',
+        );
+      }
+    }
   }
 
   void _showSuccessDialog(String filePath) {

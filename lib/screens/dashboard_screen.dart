@@ -7,11 +7,12 @@ import '../models/report_model.dart';
 import '../widgets/cards/service_card.dart';
 import '../widgets/cards/report_card.dart';
 import '../providers/notification_provider.dart';
-import 'payment_screen.dart';
 import 'notifications_screen.dart';
 import 'settings_screen.dart';
 import 'kundali_list_screen.dart';
 import 'kundali_options_screen.dart';
+import 'order_confirmation_screen.dart';
+import '../l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -28,16 +29,18 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Service(
       id: '0',
       name: 'Free Kundali',
-      description: 'Get your complete birth chart and planetary positions',
+      description:
+          'Get your complete Vedic birth chart with planetary positions and basic predictions',
       category: 'Astrology',
       price: 0,
       currency: 'INR',
       icon: '🌟',
       features: [
         'Complete birth chart (Rashi)',
-        'Planetary positions',
-        'Dasha periods',
-        'Basic predictions',
+        'Planetary positions in houses',
+        'Vimshottari Dasha periods',
+        'Basic life predictions',
+        'Lagna and Moon sign analysis',
       ],
       estimatedTime: 'Instant',
       isActive: true,
@@ -46,16 +49,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
     Service(
       id: '1',
+      name: 'AI Kundali Analysis',
+      description:
+          'Comprehensive AI-powered Vedic astrology report with detailed predictions and remedies',
+      category: 'Astrology',
+      price: 0, // FREE FOR TESTING (normally 499)
+      currency: 'INR',
+      icon: '⭐',
+      features: [
+        'Detailed birth chart analysis',
+        'Career, marriage & health predictions',
+        'Planetary yogas identification',
+        'Personalized remedies & gemstones',
+        'Professional PDF report',
+      ],
+      estimatedTime: '24-48 hours',
+      isActive: true,
+      createdAt: DateTime.now(),
+      updatedAt: DateTime.now(),
+    ),
+    Service(
+      id: '2',
       name: 'Palmistry Reading',
-      description: 'Get insights into your life through palm reading',
+      description: 'AI-powered palm reading analysis from your hand images',
       category: 'Palmistry',
-      price: 299,
+      price: 0, // FREE FOR TESTING (normally 299)
       currency: 'INR',
       icon: '✋',
       features: [
-        'Detailed palm analysis',
-        'Life line reading',
-        'Career guidance',
+        'Major palm lines analysis',
+        'Mount and finger interpretation',
+        'Health & longevity insights',
+        'Career and relationship guidance',
+        'Detailed PDF report',
       ],
       estimatedTime: '24 hours',
       isActive: true,
@@ -63,33 +89,42 @@ class _DashboardScreenState extends State<DashboardScreen> {
       updatedAt: DateTime.now(),
     ),
     Service(
-      id: '2',
-      name: 'Vedic Jyotish Analysis',
-      description: 'Comprehensive Vedic astrology report',
-      category: 'Astrology',
-      price: 499,
+      id: '3',
+      name: 'Numerology Report',
+      description:
+          'Discover your life path and destiny through the power of numbers',
+      category: 'Numerology',
+      price: 0, // FREE FOR TESTING (normally 199)
       currency: 'INR',
-      icon: '⭐',
+      icon: '🔢',
       features: [
-        'Birth chart analysis',
-        'Planetary positions',
-        'Future predictions',
+        'Life path number calculation',
+        'Destiny & soul urge numbers',
+        'Lucky numbers and colors',
+        'Name compatibility analysis',
+        'Personalized recommendations',
       ],
-      estimatedTime: '48 hours',
+      estimatedTime: '12 hours',
       isActive: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
     ),
     Service(
-      id: '3',
-      name: 'Numerology Report',
-      description: 'Discover your life path through numbers',
-      category: 'Numerology',
-      price: 199,
+      id: '4',
+      name: 'Marriage Compatibility',
+      description: 'Check Ashtakoot matching and compatibility for marriage',
+      category: 'Compatibility',
+      price: 0, // FREE FOR TESTING (normally 399)
       currency: 'INR',
-      icon: '🔢',
-      features: ['Life path number', 'Destiny number', 'Lucky numbers'],
-      estimatedTime: '12 hours',
+      icon: '💑',
+      features: [
+        'Ashtakoot matching (36 points)',
+        'Mangal Dosha analysis',
+        'Mental & physical compatibility',
+        'Relationship predictions',
+        'Remedies for low compatibility',
+      ],
+      estimatedTime: '24 hours',
       isActive: true,
       createdAt: DateTime.now(),
       updatedAt: DateTime.now(),
@@ -509,19 +544,64 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   void _handleServiceSelection(Service service) {
-    // Check if it's the free Kundali service
-    if (service.id == '0' && service.price == 0) {
-      // Navigate to Kundali options screen
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (context) => KundaliOptionsScreen(service: service),
-        ),
-      );
+    // In testing mode, bypass payment for all services
+    if (Service.testingMode || service.isFree) {
+      // Navigate directly to service screens for testing
+      switch (service.id) {
+        case '0': // Free Kundali
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => KundaliOptionsScreen(service: service),
+            ),
+          );
+          break;
+        case '1': // AI Kundali Analysis
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (context) => KundaliOptionsScreen(service: service),
+            ),
+          );
+          break;
+        case '2': // Palmistry Reading
+          // TODO: Navigate to palmistry upload screen
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Palmistry service - Coming soon!'),
+              backgroundColor: AppColors.primaryOrange,
+            ),
+          );
+          break;
+        case '3': // Numerology Report
+          // TODO: Navigate to numerology input screen
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Numerology service - Coming soon!'),
+              backgroundColor: AppColors.primaryOrange,
+            ),
+          );
+          break;
+        case '4': // Marriage Compatibility
+          // TODO: Navigate to compatibility check screen
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Compatibility service - Coming soon!'),
+              backgroundColor: AppColors.primaryOrange,
+            ),
+          );
+          break;
+        default:
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Service not yet implemented'),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+      }
     } else {
-      // Navigate to payment screen for paid services
+      // Production mode - navigate to payment
       Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (context) => PaymentScreen(service: service),
+          builder: (context) => OrderConfirmationScreen(service: service),
         ),
       );
     }

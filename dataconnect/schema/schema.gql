@@ -1,0 +1,58 @@
+type User @table {
+  firebaseUID: String!
+  createdAt: Timestamp!
+  email: String
+  displayName: String
+  photoUrl: String
+}
+
+type BirthChartProfile @table {
+  user: User!
+  name: String!
+  birthDate: Date!
+  birthTime: Timestamp!
+  birthLocationName: String!
+  birthLatitude: Float!
+  birthLongitude: Float!
+  createdAt: Timestamp!
+  notes: String
+}
+
+type PlanetPosition @table {
+  birthChartProfile: BirthChartProfile!
+  planetName: String!
+  zodiacSign: String!
+  houseNumber: Int!
+  degree: Float!
+  isRetrograde: Boolean!
+  createdAt: Timestamp!
+}
+
+type Aspect @table {
+  birthChartProfile: BirthChartProfile!
+  planet1: String!
+  planet2: String!
+  aspectType: String!
+  orb: Float!
+  createdAt: Timestamp!
+}
+
+type ZodiacInfo @table {
+  signName: String!
+  startDate: Date!
+  endDate: Date!
+  element: String!
+  modality: String!
+  rulingPlanet: String!
+  symbol: String!
+  createdAt: Timestamp!
+  description: String
+  keywords: String
+}
+
+type Interpretation @table {
+  title: String!
+  interpretationText: String!
+  category: String!
+  createdAt: Timestamp!
+}

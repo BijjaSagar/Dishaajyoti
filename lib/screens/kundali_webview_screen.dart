@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
+import '../l10n/app_localizations.dart';
 
 /// WebView screen to generate Kundali using online services
 /// Uses popular Kundali generators like AstroSage, mPanchang, etc.
@@ -95,6 +96,7 @@ class _KundaliWebViewScreenState extends State<KundaliWebViewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
@@ -105,7 +107,7 @@ class _KundaliWebViewScreenState extends State<KundaliWebViewScreen> {
           onPressed: () => Navigator.of(context).pop(),
         ),
         title: Text(
-          'Generate Kundali Online',
+          l10n.kundali_webview_title,
           style: AppTypography.h3.copyWith(
             color: AppColors.primaryBlue,
           ),
@@ -115,21 +117,21 @@ class _KundaliWebViewScreenState extends State<KundaliWebViewScreen> {
             icon: const Icon(Icons.more_vert, color: AppColors.primaryBlue),
             onSelected: _changeService,
             itemBuilder: (context) => [
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'astrosage',
-                child: Text('AstroSage'),
+                child: Text(l10n.kundali_webview_astrosage),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'mpanchang',
-                child: Text('mPanchang'),
+                child: Text(l10n.kundali_webview_mpanchang),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'ganeshaspeaks',
-                child: Text('GaneshaSpeaks'),
+                child: Text(l10n.kundali_webview_ganeshaspeaks),
               ),
-              const PopupMenuItem(
+              PopupMenuItem(
                 value: 'clickastro',
-                child: Text('ClickAstro'),
+                child: Text(l10n.kundali_webview_clickastro),
               ),
             ],
           ),
@@ -162,7 +164,7 @@ class _KundaliWebViewScreenState extends State<KundaliWebViewScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Fill in your details and generate Kundali',
+              l10n.kundali_webview_fill_details,
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.textSecondary,
               ),
@@ -170,7 +172,7 @@ class _KundaliWebViewScreenState extends State<KundaliWebViewScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'You can download the PDF from the website',
+              l10n.kundali_webview_download_pdf,
               style: AppTypography.bodySmall.copyWith(
                 color: AppColors.primaryOrange,
                 fontWeight: FontWeight.w600,

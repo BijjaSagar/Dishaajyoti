@@ -1,0 +1,37 @@
+mutation CreateSeedData @transaction @auth(level: PUBLIC, insecureReason: "This operation is safe to expose to the public") {
+  zodiacInfo_insertMany(data: [
+    {
+      signName: "Aries",
+      startDate: "2024-03-21",
+      endDate: "2024-04-19",
+      element: "Fire",
+      modality: "Cardinal",
+      rulingPlanet: "Mars",
+      symbol: "Ram",
+      keywords: "Energetic, Bold, Pioneering",
+      description: "Aries is the first sign of the zodiac and is known for its enthusiastic and assertive nature."
+    },
+    {
+      signName: "Taurus",
+      startDate: "2024-04-20",
+      endDate: "2024-05-20",
+      element: "Earth",
+      modality: "Fixed",
+      rulingPlanet: "Venus",
+      symbol: "Bull",
+      keywords: "Grounded, Reliable, Sensual",
+      description: "Taurus is an earth sign that values stability, comfort, and beauty."
+    },
+    {
+      signName: "Gemini",
+      startDate: "2024-05-21",
+      endDate: "2024-06-20",
+      element: "Air",
+      modality: "Mutable",
+      rulingPlanet: "Mercury",
+      symbol: "Twins",
+      keywords: "Communicative, Curious, Adaptable",
+      description: "Gemini is an air sign that is known for its intelligence, wit, and love of communication."
+    }
+  ])
+}

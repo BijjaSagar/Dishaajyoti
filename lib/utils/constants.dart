@@ -6,8 +6,9 @@ class AppConstants {
   static const String appVersion = '1.0.0';
 
   // API Configuration
-  static const String baseUrl = 'https://api.dishaajyoti.com';
+  static const String baseUrl = 'https://rhtechnology.in/Dishaajyoti';
   static const String apiVersion = 'v1';
+  // Backend routes are under /api/v1 prefix
   static const String apiBaseUrl = '$baseUrl/api/$apiVersion';
 
   // API Endpoints
@@ -143,10 +144,28 @@ class AppConstants {
   // Supported Languages
   static const String languageEnglish = 'en';
   static const String languageHindi = 'hi';
+  static const String languageMarathi = 'mr';
+  static const String languageTamil = 'ta';
+  static const String languageTelugu = 'te';
+  static const String languageKannada = 'kn';
+
   static const List<String> supportedLanguages = [
     languageEnglish,
-    languageHindi
+    languageHindi,
+    languageMarathi,
+    languageTamil,
+    languageTelugu,
+    languageKannada,
   ];
+
+  static const Map<String, String> languageNames = {
+    languageEnglish: 'English',
+    languageHindi: 'हिंदी',
+    languageMarathi: 'मराठी',
+    languageTamil: 'தமிழ்',
+    languageTelugu: 'తెలుగు',
+    languageKannada: 'ಕನ್ನಡ',
+  };
 
   // Terms and Privacy URLs
   static const String termsOfServiceUrl = 'https://dishaajyoti.com/terms';

@@ -4,6 +4,7 @@ import '../theme/app_typography.dart';
 import '../widgets/inputs/custom_text_field.dart';
 import '../widgets/buttons/primary_button.dart';
 import '../utils/validators.dart';
+import '../l10n/app_localizations.dart';
 
 /// Forgot Password screen with email input for password reset
 /// Displays success message after submission and provides back to login link
@@ -62,9 +63,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context)!;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to send reset link: ${e.toString()}'),
+            content: Text(l10n.forgot_password_failed(e.toString())),
             backgroundColor: AppColors.error,
           ),
         );
@@ -84,6 +86,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: AppColors.white,
       appBar: AppBar(
@@ -104,7 +108,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
               children: [
                 // Header
                 Text(
-                  'Forgot Password?',
+                  l10n.forgot_password_title,
                   style: AppTypography.h1.copyWith(
                     color: AppColors.primaryBlue,
                   ),
@@ -112,8 +116,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 const SizedBox(height: 8),
                 Text(
                   _isSubmitted
-                      ? 'Check your email for reset instructions'
-                      : 'Enter your email address and we\'ll send you a link to reset your password',
+                      ? l10n.forgot_password_email_sent_subtitle
+                      : l10n.forgot_password_subtitle,
                   style: AppTypography.bodyLarge.copyWith(
                     color: AppColors.textSecondary,
                   ),
@@ -124,8 +128,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   // Email field
                   CustomTextField(
                     controller: _emailController,
-                    label: 'Email',
-                    hint: 'Enter your email',
+                    label: l10n.forgot_password_email_label,
+                    hint: l10n.forgot_password_email_hint,
                     keyboardType: TextInputType.emailAddress,
                     textInputAction: TextInputAction.done,
                     errorText: _emailError,
@@ -146,7 +150,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   // Submit button
                   PrimaryButton(
-                    label: 'Send Reset Link',
+                    label: l10n.forgot_password_send_reset_link,
                     onPressed: _isLoading ? null : _handleSubmit,
                     isLoading: _isLoading,
                   ),
@@ -175,14 +179,15 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                'Email Sent!',
+                                l10n.forgot_password_email_sent,
                                 style: AppTypography.h3.copyWith(
                                   color: AppColors.success,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                'We\'ve sent a password reset link to ${_emailController.text}',
+                                l10n.forgot_password_email_sent_message(
+                                    _emailController.text),
                                 style: AppTypography.bodyMedium.copyWith(
                                   color: AppColors.textPrimary,
                                 ),
@@ -217,7 +222,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            'Didn\'t receive the email? Check your spam folder or try again in a few minutes.',
+                            l10n.forgot_password_check_spam,
                             style: AppTypography.bodySmall.copyWith(
                               color: AppColors.textSecondary,
                             ),
@@ -235,7 +240,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Text(
-                      'Remember your password? ',
+                      l10n.forgot_password_remember,
                       style: AppTypography.bodyMedium.copyWith(
                         color: AppColors.textSecondary,
                       ),
@@ -248,7 +253,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                       ),
                       child: Text(
-                        'Back to Login',
+                        l10n.forgot_password_back_to_login,
                         style: AppTypography.bodyMedium.copyWith(
                           color: AppColors.primaryOrange,
                           fontWeight: FontWeight.w600,
