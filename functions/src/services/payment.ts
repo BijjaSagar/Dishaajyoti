@@ -374,7 +374,7 @@ export const processPayment = onCall(
 
       // Send notification to user using notification utility
       try {
-        const {sendPaymentConfirmationNotification} = await import("../utils/notifications");
+        const {sendPaymentConfirmationNotification} = await import("../utils/notifications.js");
         const serviceName = orderData.serviceType.charAt(0).toUpperCase() +
           orderData.serviceType.slice(1);
         await sendPaymentConfirmationNotification(userId, input.orderId, serviceName);

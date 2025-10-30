@@ -403,7 +403,7 @@ export const generateKundali = onCall(
 
       // Send notification to user using notification utility
       try {
-        const {sendKundaliReadyNotification} = await import("../utils/notifications");
+        const {sendKundaliReadyNotification} = await import("../utils/notifications.js");
         await sendKundaliReadyNotification(userId, reportId);
         logger.info("Kundali ready notification sent", {userId, reportId});
       } catch (notificationError) {

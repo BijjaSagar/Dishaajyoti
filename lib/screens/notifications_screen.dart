@@ -392,8 +392,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       case NotificationType.reportReady:
         icon = Icons.description;
         color = AppColors.success;
+      case NotificationType.reportScheduled:
+        icon = Icons.schedule;
+        color = AppColors.primaryBlue;
+      case NotificationType.reportFailed:
+        icon = Icons.error_outline;
+        color = AppColors.error;
       case NotificationType.paymentSuccess:
         icon = Icons.check_circle;
+        color = AppColors.success;
+      case NotificationType.paymentConfirmed:
+        icon = Icons.check_circle_outline;
         color = AppColors.success;
       case NotificationType.paymentFailed:
         icon = Icons.error;

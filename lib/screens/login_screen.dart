@@ -161,18 +161,42 @@ class _LoginScreenState extends State<LoginScreen> {
         });
 
         String errorMessage = 'Google Sign-In failed';
-        if (e.code == 'ERROR_ABORTED_BY_USER' || e.code == 'sign_in_canceled') {
+        String? actionMessage;
+
+        if (e.code == 'sign_in_canceled') {
           errorMessage = 'Sign-in cancelled';
         } else if (e.code == 'account-exists-with-different-credential') {
           errorMessage = 'An account already exists with this email';
+          actionMessage = 'Try signing in with email/password instead';
+        } else if (e.code == 'sign_in_failed') {
+          errorMessage = 'Google Sign-In configuration error';
+          actionMessage =
+              'Please check GOOGLE_SIGNIN_FIX.md for setup instructions';
+        } else if (e.code == 'missing-auth-token') {
+          errorMessage = 'Failed to authenticate with Google';
+          actionMessage = 'Please try again or use email/password';
         } else if (e.message != null) {
           errorMessage = e.message!;
         }
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(errorMessage),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(errorMessage),
+                if (actionMessage != null) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    actionMessage,
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                ],
+              ],
+            ),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -185,6 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
           SnackBar(
             content: Text('An error occurred: ${e.toString()}'),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 4),
           ),
         );
       }

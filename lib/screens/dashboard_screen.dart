@@ -7,12 +7,12 @@ import '../models/report_model.dart';
 import '../widgets/cards/service_card.dart';
 import '../widgets/cards/report_card.dart';
 import '../providers/notification_provider.dart';
+import '../services/firebase/firebase_service_manager.dart';
 import 'notifications_screen.dart';
 import 'settings_screen.dart';
 import 'kundali_list_screen.dart';
 import 'kundali_options_screen.dart';
 import 'order_confirmation_screen.dart';
-import '../l10n/app_localizations.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -131,12 +131,29 @@ class _DashboardScreenState extends State<DashboardScreen> {
     ),
   ];
 
-  // Mock user data
-  final String _userName = 'Rahul';
-  final String _userEmail = 'rahul@example.com';
-  final String _userPhone = '+91 98765 43210';
+  // User data from Firebase Auth
+  String _userName = 'User';
+  String _userEmail = '';
+  String _userPhone = '';
   final int _reportsCount = 3;
   final int _amountSpent = 997;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUserData();
+  }
+
+  void _loadUserData() {
+    final user = FirebaseServiceManager.instance.currentUser;
+    if (user != null) {
+      setState(() {
+        _userName = user.displayName ?? user.email?.split('@')[0] ?? 'User';
+        _userEmail = user.email ?? '';
+        _userPhone = user.phoneNumber ?? '';
+      });
+    }
+  }
 
   // Mock reports data
   final List<Report> _reports = [
@@ -1222,23 +1239,38 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  void _handleLogout() {
-    // TODO: Clear session and navigate to login screen
-    // For now, show a snackbar
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Logged out successfully'),
-        backgroundColor: AppColors.success,
-        duration: Duration(seconds: 2),
-      ),
-    );
+  Future<void> _handleLogout() async {
+    try {
+      // Sign out from Firebase
+      await FirebaseServiceManager.instance.signOut();
 
-    // In a real app, you would:
-    // 1. Clear stored tokens from Flutter Secure Storage
-    // 2. Clear any cached user data
-    // 3. Navigate to login screen and clear navigation stack
-    // Example:
-    // Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
+      if (mounted) {
+        // Navigate to login screen and clear navigation stack
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          '/login',
+          (route) => false,
+        );
+
+        // Show success message
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Logged out successfully'),
+            backgroundColor: AppColors.success,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Logout failed: ${e.toString()}'),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildBottomNavigationBar() {

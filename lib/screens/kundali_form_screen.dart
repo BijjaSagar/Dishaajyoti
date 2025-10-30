@@ -212,10 +212,34 @@ class _KundaliFormScreenState extends State<KundaliFormScreen> {
     });
 
     // Validate latitude and longitude
-    final latitude = double.tryParse(_latitudeController.text);
-    final longitude = double.tryParse(_longitudeController.text);
+    final latitudeText = _latitudeController.text.trim();
+    final longitudeText = _longitudeController.text.trim();
 
-    if (latitude == null || longitude == null) {
+    if (latitudeText.isEmpty || longitudeText.isEmpty) {
+      setState(() {
+        _isLoading = false;
+      });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l10n.kundali_form_coords_not_found),
+            backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+      return;
+    }
+
+    final latitude = double.tryParse(latitudeText);
+    final longitude = double.tryParse(longitudeText);
+
+    if (latitude == null ||
+        longitude == null ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180) {
       setState(() {
         _isLoading = false;
       });
@@ -223,8 +247,9 @@ class _KundaliFormScreenState extends State<KundaliFormScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                '${l10n.kundali_form_latitude_required} & ${l10n.kundali_form_longitude_required}'),
+                '${l10n.kundali_form_latitude_invalid} or ${l10n.kundali_form_longitude_invalid}'),
             backgroundColor: AppColors.error,
+            duration: const Duration(seconds: 3),
           ),
         );
       }

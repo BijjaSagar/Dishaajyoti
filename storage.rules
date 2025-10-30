@@ -1,54 +1,107 @@
 rules_version = '2';
 
 // Firebase Storage Security Rules for DishaAjyoti
+// Requirements: 11.4, 11.5
 service firebase.storage {
   match /b/{bucket}/o {
     
-    // Helper functions
+    // ============================================
+    // Helper Functions
+    // ============================================
+    
+    // Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
     
+    // Check if authenticated user owns the resource
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
     
-    function isValidImageSize() {
+    // Validate file size for user uploads (10MB limit as per requirement 11.5)
+    function isValidUploadSize() {
       return request.resource.size < 10 * 1024 * 1024; // 10MB limit
     }
     
-    function isValidPDFSize() {
-      return request.resource.size < 50 * 1024 * 1024; // 50MB limit
+    // Validate image file types
+    function isValidImageType() {
+      return request.resource.contentType.matches('image/.*');
     }
+    
+    // Validate PDF file type
+    function isValidPDFType() {
+      return request.resource.contentType == 'application/pdf';
+    }
+    
+    // ============================================
+    // User Uploads (read/write own files)
+    // Requirement 11.4: Users can read and write their own uploaded files
+    // Requirement 11.5: File size limit of 10MB for uploads
+    // ============================================
     
     // User uploads (palmistry images, profile pictures, etc.)
     match /uploads/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
-      allow write: if isOwner(userId) && isValidImageSize();
+      allow write: if isOwner(userId) && isValidUploadSize();
+      allow delete: if isOwner(userId);
     }
+    
+    // ============================================
+    // Generated Reports (read own, no write)
+    // Requirement 11.4: Users can only read their own generated reports
+    // Cloud Functions have write access through service account
+    // ============================================
     
     // Generated reports (PDFs, charts)
     match /reports/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
       allow write: if false; // Only Cloud Functions can write
+      allow delete: if false; // Only Cloud Functions can delete
     }
     
-    // Kundali files
+    // Kundali files (charts and PDFs)
     match /kundalis/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
       allow write: if false; // Only Cloud Functions can write
+      allow delete: if false; // Only Cloud Functions can delete
     }
     
-    // Palmistry analysis images
+    // Palmistry analysis images and reports
     match /palmistry/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
       allow write: if false; // Only Cloud Functions can write
+      allow delete: if false; // Only Cloud Functions can delete
     }
     
     // Numerology reports
     match /numerology/{userId}/{allPaths=**} {
       allow read: if isOwner(userId);
       allow write: if false; // Only Cloud Functions can write
+      allow delete: if false; // Only Cloud Functions can delete
+    }
+    
+    // Compatibility/Matchmaking reports
+    match /compatibility/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write
+      allow delete: if false; // Only Cloud Functions can delete
+    }
+    
+    // Panchang reports
+    match /panchang/{userId}/{allPaths=**} {
+      allow read: if isOwner(userId);
+      allow write: if false; // Only Cloud Functions can write
+      allow delete: if false; // Only Cloud Functions can delete
+    }
+    
+    // ============================================
+    // Default Deny
+    // ============================================
+    
+    // Deny all other access by default
+    match /{allPaths=**} {
+      allow read, write: if false;
     }
   }
 }

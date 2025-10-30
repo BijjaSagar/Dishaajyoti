@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:sign_in_with_apple/sign_in_with_apple.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'firebase_service_manager.dart';
 
 /// Service class for handling Firebase Authentication operations
@@ -162,7 +163,7 @@ class FirebaseAuthService {
 
       if (googleUser == null) {
         throw FirebaseAuthException(
-          code: 'ERROR_ABORTED_BY_USER',
+          code: 'sign_in_canceled',
           message: 'Google Sign-In cancelled by user',
         );
       }
@@ -170,6 +171,14 @@ class FirebaseAuthService {
       // Obtain the auth details from the request
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
+
+      // Verify we have the required tokens
+      if (googleAuth.accessToken == null || googleAuth.idToken == null) {
+        throw FirebaseAuthException(
+          code: 'missing-auth-token',
+          message: 'Failed to obtain authentication tokens from Google',
+        );
+      }
 
       // Create a new credential
       final credential = GoogleAuthProvider.credential(
@@ -188,9 +197,22 @@ class FirebaseAuthService {
     } on FirebaseAuthException catch (e) {
       debugPrint('Google sign in error: ${e.code} - ${e.message}');
       rethrow;
+    } on PlatformException catch (e) {
+      debugPrint(
+          'Platform exception during Google sign in: ${e.code} - ${e.message}');
+      // Convert platform exception to Firebase auth exception for consistent handling
+      throw FirebaseAuthException(
+        code: 'sign_in_failed',
+        message: e.message ??
+            'Google Sign-In failed. Please check your configuration.',
+      );
     } catch (e) {
       debugPrint('Google sign in error: $e');
-      rethrow;
+      throw FirebaseAuthException(
+        code: 'unknown',
+        message:
+            'An unexpected error occurred during Google Sign-In: ${e.toString()}',
+      );
     }
   }
 
