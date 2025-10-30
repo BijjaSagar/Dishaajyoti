@@ -85,6 +85,9 @@ dependencies:
   # Connectivity monitoring for sync
   connectivity_plus: ^5.0.2
 
+  # URL Launcher for opening PDF and web links
+  url_launcher: ^6.2.4
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

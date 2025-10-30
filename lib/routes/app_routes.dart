@@ -10,6 +10,7 @@ import '../screens/payment_screen.dart';
 import '../screens/report_processing_screen.dart';
 import '../screens/report_detail_screen.dart';
 import '../screens/report_detail_api_screen.dart';
+import '../screens/firebase_report_detail_screen.dart';
 import '../screens/reports_list_screen.dart';
 import '../screens/notifications_screen.dart';
 import '../screens/kundali_input_screen.dart';
@@ -41,6 +42,7 @@ class AppRoutes {
   static const String reportProcessing = '/report-processing';
   static const String reportDetail = '/report-detail';
   static const String reportDetailApi = '/report-detail-api';
+  static const String firebaseReportDetail = '/firebase-report-detail';
   static const String reportsList = '/reports-list';
   static const String notifications = '/notifications';
 
