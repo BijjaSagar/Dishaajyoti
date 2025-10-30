@@ -8,6 +8,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/buttons/primary_button.dart';
 import 'report_detail_screen.dart';
+import 'firebase_report_detail_screen.dart';
 
 /// Report processing screen that shows progress while AI generates the report
 /// Displays animated loading state and navigates to report detail on completion
@@ -229,10 +230,15 @@ class _ReportProcessingScreenState extends State<ReportProcessingScreen>
           ),
         ),
       );
-    } else if (_firebaseReport != null) {
+    } else if (_firebaseReport != null || widget.reportId != null) {
       // Navigate to Firebase report detail screen
-      // TODO: Implement Firebase report detail navigation
-      Navigator.of(context).pop();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) => FirebaseReportDetailScreen(
+            reportId: widget.reportId!,
+          ),
+        ),
+      );
     }
   }
 
