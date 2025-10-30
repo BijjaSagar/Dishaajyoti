@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/firebase/service_report_model.dart';
 import '../services/firebase/firestore_service.dart';
-import '../services/firebase/cloud_storage_service.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import '../widgets/buttons/primary_button.dart';
-import '../l10n/app_localizations.dart';
 
 /// Firebase Report Detail Screen
 /// Displays detailed information about a report generated via Cloud Functions
@@ -28,7 +26,6 @@ class _FirebaseReportDetailScreenState
   ServiceReport? _report;
   bool _isLoading = true;
   String? _error;
-  double? _downloadProgress;
 
   @override
   void initState() {
@@ -63,13 +60,14 @@ class _FirebaseReportDetailScreenState
   }
 
   Future<void> _downloadPDF() async {
-    if (_report?.files.pdfUrl == null) {
+    final pdfUrl = _report?.files?.pdfUrl;
+    if (pdfUrl == null || pdfUrl.isEmpty) {
       _showError('PDF not available');
       return;
     }
 
     try {
-      final url = Uri.parse(_report!.files.pdfUrl!);
+      final url = Uri.parse(pdfUrl);
       if (await canLaunchUrl(url)) {
         await launchUrl(url, mode: LaunchMode.externalApplication);
       } else {
@@ -152,11 +150,10 @@ class _FirebaseReportDetailScreenState
         ),
         centerTitle: true,
         actions: [
-          if (_report != null && _report!.files.pdfUrl != null)
+          if (_report?.files?.pdfUrl != null)
             IconButton(
               icon: const Icon(Icons.share, color: AppColors.primaryBlue),
               onPressed: () {
-                // TODO: Implement share functionality
                 _showError('Share feature coming soon');
               },
             ),
@@ -237,7 +234,7 @@ class _FirebaseReportDetailScreenState
 
           // Calculated Data Card (for Kundali)
           if (_report!.serviceType == ServiceType.kundali &&
-              _report!.calculatedData != null)
+              _report!.data.isNotEmpty)
             _buildCalculatedDataCard(),
 
           const SizedBox(height: 16),
@@ -396,6 +393,9 @@ class _FirebaseReportDetailScreenState
   }
 
   Widget _buildFilesCard() {
+    final files = _report!.files;
+    if (files == null) return const SizedBox.shrink();
+
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(20),
@@ -420,24 +420,24 @@ class _FirebaseReportDetailScreenState
             ),
           ),
           const SizedBox(height: 16),
-          if (_report!.files.pdfUrl != null)
+          if (files.pdfUrl != null && files.pdfUrl!.isNotEmpty)
             _buildFileItem(
               icon: Icons.picture_as_pdf,
               title: 'PDF Report',
               subtitle: 'View your complete report',
               onTap: _downloadPDF,
             ),
-          if (_report!.files.imageUrls.isNotEmpty) ...[
+          if (files.imageUrls.isNotEmpty) ...[
             const SizedBox(height: 12),
             ...List.generate(
-              _report!.files.imageUrls.length,
+              files.imageUrls.length,
               (index) => Padding(
                 padding: const EdgeInsets.only(bottom: 12),
                 child: _buildFileItem(
                   icon: Icons.image,
                   title: 'Chart Image ${index + 1}',
                   subtitle: 'View chart visualization',
-                  onTap: () => _viewImage(_report!.files.imageUrls[index]),
+                  onTap: () => _viewImage(files.imageUrls[index]),
                 ),
               ),
             ),
@@ -505,7 +505,11 @@ class _FirebaseReportDetailScreenState
   }
 
   Widget _buildCalculatedDataCard() {
-    final calculatedData = _report!.calculatedData;
+    final data = _report!.data;
+    if (data.isEmpty) return const SizedBox.shrink();
+
+    // Try to get calculated data from the data map
+    final calculatedData = data['calculatedData'] as Map<String, dynamic>?;
     if (calculatedData == null) return const SizedBox.shrink();
 
     return Container(
@@ -570,11 +574,12 @@ class _FirebaseReportDetailScreenState
   }
 
   Widget _buildActionButtons() {
+    final files = _report!.files;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          if (_report!.files.pdfUrl != null)
+          if (files?.pdfUrl != null && files!.pdfUrl!.isNotEmpty)
             PrimaryButton(
               label: 'View PDF Report',
               onPressed: _downloadPDF,
